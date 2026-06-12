@@ -1,0 +1,22 @@
+# n8n specific files
+.n8n/
+n8n-debug.log*
+credentials/
+
+# Environment variables & secrets (CRITICAL)
+.env
+.env.local
+*.env
+secrets.json
+
+# Local database files (if hosting n8n via SQLite locally)
+*.sqlite
+*.db
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Node.js dependencies (if you install custom npm packages)
+node_modules/
+npm-debug.log*
