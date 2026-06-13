@@ -1,0 +1,1485 @@
+{
+  "name": "HR003 copy",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9aaa5d36-b237-431a-a772-f2e06622e818",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "86dcac9b-7e68-46ec-86ae-a82818b9d9bb",
+              "name": "source_key",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "dd22c17f-cdf0-4876-b4ba-e897ac060f1a",
+              "name": "processed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "272c722d-d145-4f66-a6bc-b658c7f36c34",
+              "name": "retry_count",
+              "value": "0",
+              "type": "string"
+            },
+            {
+              "id": "4592915a-f648-421d-b297-d836eb8d3070",
+              "name": "status",
+              "value": "pending",
+              "type": "string"
+            },
+            {
+              "id": "a045d2f8-78e9-462c-8c42-181755158fe8",
+              "name": "record_key",
+              "value": "={{ $json['Email'].toLowerCase().trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "36dd0413-f526-4746-884d-292880856437",
+              "name": "Contact name",
+              "value": "={{ $json['Contact name'].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "dce8eea6-7588-4727-8dd8-d59e3d41d432",
+              "name": "Email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "2a5127fa-52e3-4d7c-b250-644c51f3d876",
+              "name": "Company name",
+              "value": "={{ $json['Company name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "a6dd3c6b-e08a-4dfb-8e3b-373026ce001f",
+              "name": "phone",
+              "value": "={{ $json['Phone'] ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "1bba0b78-ed29-46ff-a404-7148aeff1dd6",
+              "name": "Industry",
+              "value": "={{ $json.Industry  ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "a273e815-88e5-43e6-b3e9-d1e6a75a01eb",
+              "name": "Location / city",
+              "value": "={{ $json[\"Location / city\"]  ?? ''  }}",
+              "type": "string"
+            },
+            {
+              "id": "2e7b615a-44a7-45ac-b5a5-3e05135be132",
+              "name": "duplicate",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        368
+      ],
+      "id": "c0e46aea-bd05-4eab-b95a-1d1a1dc39c0b",
+      "name": "Set helper fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "13f75400-f692-4e73-9d32-c8b6c2d4b0ba",
+              "leftValue": "={{ $json[\"Contact name\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "b83d8324-59d2-4daf-9a98-862c7fd0d850",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "638c3c12-9518-40fb-9510-2e484cb87805",
+              "leftValue": "={{ $json[\"Company name\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        368
+      ],
+      "id": "7fae03a4-2b93-4b4f-9493-c33424e39354",
+      "name": "Validate input"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c",
+          "mode": "list",
+          "cachedResultName": "HR003 Competition List Building Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 248792528,
+          "mode": "list",
+          "cachedResultName": "Run_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit#gid=248792528"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "source_key": "={{ $json.source_key }}",
+            "started_at": "={{ $json.submittedAt }}",
+            "total_records": "1",
+            "notes": "Failed initial input validation guardrail. Required fields missing or malformed",
+            "error": "invalid input"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_key",
+              "displayName": "source_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_records",
+              "displayName": "total_records",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        272
+      ],
+      "id": "f15951d9-e760-4501-809a-e3cbd6b6a4b7",
+      "name": "Log invalid",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c",
+          "mode": "list",
+          "cachedResultName": "HR003 Competition List Building Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 248792528,
+          "mode": "list",
+          "cachedResultName": "Run_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit#gid=248792528"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "source_key": "={{ $json.source_key }}",
+            "started_at": "={{ $json.submittedAt }}",
+            "notes": "Record skipped. The record_key unique hash already exists in internal tracking storage.",
+            "total_records": "1",
+            "error": "=duplicate"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_key",
+              "displayName": "source_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_records",
+              "displayName": "total_records",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1408,
+        224
+      ],
+      "id": "34c3affe-a66f-440a-83ba-799e7d56814b",
+      "name": "Log duplicate",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "google"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json[\"Company name\"] }}"
+            },
+            {
+              "name": "api_key",
+              "value": "b5f64fadaa90251024ec6c1ef49280de9f7b72a5cdc96c68fd1e5720a13fb5a3"
+            },
+            {
+              "name": "num",
+              "value": "5"
+            },
+            {
+              "name": "gl",
+              "value": "in"
+            },
+            {
+              "name": "hl",
+              "value": "en"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1632,
+        80
+      ],
+      "id": "67ce0fde-836a-4c86-a4cb-9c404cc1feae",
+      "name": "SerpApi enrichment",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "maxTries": 2,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c",
+          "mode": "list",
+          "cachedResultName": "HR003 Competition List Building Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 248792528,
+          "mode": "list",
+          "cachedResultName": "Run_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit#gid=248792528"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_is }}",
+            "run_status": "={{ $json.status }}",
+            "started_at": "=",
+            "source_key": "={{ $json.source_key }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_key",
+              "displayName": "source_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_records",
+              "displayName": "total_records",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "run_status",
+              "displayName": "run_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1856,
+        128
+      ],
+      "id": "1f1f8e7c-9301-4ab1-999b-e7089d5a1fa1",
+      "name": "Log API fail",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1408,
+        32
+      ],
+      "id": "a245025d-5a85-40f8-a5a5-8c1014f48722",
+      "name": "Wait / rate control",
+      "webhookId": "eeb84f3e-df18-4c30-98bb-701723eb5ebf"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        736,
+        464
+      ],
+      "id": "89a6daa7-eabb-4cea-8801-ec525082e9f2",
+      "name": "Split in batches"
+    },
+    {
+      "parameters": {
+        "content": "# cheack loop and \"check run ID\" later as there is nothing to loop over "
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1296,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "449e3c4a-c23b-4ad2-b690-712f4bb8bde9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1856,
+        -80
+      ],
+      "id": "a9b36351-3556-4313-aede-c562a5118258",
+      "name": "Merge Candidate and Enrichment"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "06b208b8-70cf-4552-9bc8-2c7793c41886",
+              "name": "serp_title",
+              "value": "={{ $json.organic_results?.[0]?.title ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "dfdea346-6a1d-4dcc-b6d0-078e06ba656e",
+              "name": "serp_link",
+              "value": "={{ $json.organic_results?.[0]?.link ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3219e2e6-2c37-4ac4-94ee-614f0d528080",
+              "name": "serp_snippet",
+              "value": "={{ $json.organic_results?.[0]?.snippet ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "348b92d3-6cf6-4f09-ba8e-29ed3de7b6f5",
+              "name": "serp_source",
+              "value": "={{ $json.organic_results?.[0]?.source ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3b23dcae-2c27-418e-9569-a7c29d5a19dc",
+              "name": "serp_position_1_title",
+              "value": "={{ $json.organic_results?.[1]?.title ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "6144b258-7d0f-4a7a-a4e0-349c2541ab1b",
+              "name": "serp_position_1_link",
+              "value": "={{ $json.organic_results?.[1]?.link ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "d08d4ee2-52b8-4995-bd8b-9ebc057bd3be",
+              "name": "total_results_found",
+              "value": "={{ $json.search_information?.total_results ?? 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "84af8a00-1487-4730-a96d-f1bbab4f8f56",
+              "name": "search_query_used",
+              "value": "={{ $json.search_parameters?.q ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "daf720b5-7a06-4458-bc38-06c72390dc89",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "b87d5128-6caa-4058-9cdb-2e0cd01846de",
+              "name": "status",
+              "value": "enriched",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2080,
+        -80
+      ],
+      "id": "82c27cb0-2a14-4f77-8dad-a7a755d9b2ec",
+      "name": "Shape data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\n\nif (!staticData.processedKeys) {\n  staticData.processedKeys = {};\n}\n\nconst recordKey = String($input.item.json.record_key).trim().toLowerCase();\n\n// Check if key exists — works for both boolean true (old) and object (new)\nconst isDuplicate = staticData.processedKeys[recordKey] !== undefined;\n\n// Reserve the slot immediately\nif (!isDuplicate) {\n  staticData.processedKeys[recordKey] = 'reserved';\n}\n\nreturn [{\n  json: {\n    ...$input.item.json,\n    duplicate: isDuplicate\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        128
+      ],
+      "id": "ed3c95f7-6099-4dfd-9ea7-bb75d6cdcdc9",
+      "name": "duplicate check"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d491eadb-1626-4d6f-9da5-87d0a7275722",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        128
+      ],
+      "id": "d55232ce-56a3-46c0-aefc-9533bd6e98ee",
+      "name": "is duplicate?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\n\nif (!staticData.processedKeys) {\n  staticData.processedKeys = {};\n}\n\nconst recordKey = String($input.item.json.record_key).trim().toLowerCase();\n\n// Overwrite the boolean with a richer object\nstaticData.processedKeys[recordKey] = {\n  status: 'success',\n  run_id: $input.item.json.run_id,\n  saved_at: new Date().toISOString(),\n  company_name: $input.item.json.company_name\n};\n\nreturn [{\n  json: {\n    ...$input.item.json,\n    storage_written: true\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2752,
+        -80
+      ],
+      "id": "787e55b4-18e2-4b73-b9e4-3ec53d6e3efe",
+      "name": "write to internal storage after successful save"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "614d3e4b-fda2-4e84-9c88-8f53b42c82a3",
+              "leftValue": "={{ $json[\"Contact name\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d98ae93c-142e-470f-91fc-9f38c62e7f9e",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "4db294ca-8d37-4a93-b2b4-9d81c9be2b5d",
+              "leftValue": "={{ $json[\"Company name\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "256a4464-ef3c-4de8-8ffb-9d3e2291b324",
+              "leftValue": "={{ $json.serp_link }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "6cb32c41-a774-4564-bf84-abd7b51fb450",
+              "leftValue": "={{ $json.total_results_found }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2304,
+        -80
+      ],
+      "id": "8f0c6633-c0c6-4ef1-bc7f-7b3ed45215ed",
+      "name": "Quality check"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c",
+          "mode": "list",
+          "cachedResultName": "HR003 Competition List Building Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 248792528,
+          "mode": "list",
+          "cachedResultName": "Run_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit#gid=248792528"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "source_key": "={{ $json.source_key }}",
+            "started_at": "={{ $json.submittedAt }}",
+            "total_records": "1",
+            "error": "Quality Check Failed",
+            "notes": "Missing required record fields post-merge"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_key",
+              "displayName": "source_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_records",
+              "displayName": "total_records",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2528,
+        128
+      ],
+      "id": "40bcb9f7-56b0-42f4-95ec-c0537d90d81f",
+      "name": "Log quality falied",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c",
+          "mode": "list",
+          "cachedResultName": "HR003 Competition List Building Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 248792528,
+          "mode": "list",
+          "cachedResultName": "Run_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit#gid=248792528"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "error": "={{ $json.status }}",
+            "source_key": "={{ $json.source_key }}",
+            "started_at": "={{ $json.submittedAt }}",
+            "total_records": "1",
+            "notes": "Data enrichment and validation successful."
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_key",
+              "displayName": "source_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_records",
+              "displayName": "total_records",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3200,
+        208
+      ],
+      "id": "b97c088b-2a45-4974-98c0-7939174baf93",
+      "name": "Log success",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c",
+          "mode": "list",
+          "cachedResultName": "HR003 Competition List Building Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Contacts_Output",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aop6CAtGxD9tGOgKm-sGs4vPL2GFqRZlA6mIROy2C3c/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "company_name": "={{ $json[\"Company name\"] }}",
+            "contact_name": "={{ $json[\"Contact name\"] }}",
+            "email": "={{ $json.Email }}",
+            "phone": "={{ $json.phone }}",
+            "location": "={{ $json[\"Location / city\"] }}",
+            "industry": "={{ $json.Industry }}",
+            "enriched_at": "={{ $json.enriched_at }}",
+            "status": "={{ $json.status }}",
+            "website": "={{ $json.serp_link }}",
+            "description": "={{ $json.serp_snippet }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_name",
+              "displayName": "contact_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "industry",
+              "displayName": "industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_at",
+              "displayName": "enriched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2528,
+        -80
+      ],
+      "id": "03a0dfdc-7e6a-472f-be29-32ce4c421ec9",
+      "name": "Save to Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2976,
+        -160
+      ],
+      "id": "92948cbe-8419-43c5-b034-01fd182e2e1c",
+      "name": "Merge Candidate and Enrichment1"
+    },
+    {
+      "parameters": {
+        "formTitle": "HR003 Competition Processing Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Contact name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "phone"
+            },
+            {
+              "fieldLabel": "Industry"
+            },
+            {
+              "fieldLabel": "Location / city"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -160,
+        368
+      ],
+      "id": "7250e1a6-4dc0-4985-8c2c-f447faddb510",
+      "name": "Form trigger",
+      "webhookId": "187ec565-413c-4b2b-b92a-3a653f4fd68f"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      'Contact name': 'Alice Smith',\n      'Email': 'alice@testco.com',\n      'Company name': 'TestCo',\n      'phone': '9876543210',\n      'Industry': 'Tech',\n      'Location / city': 'Bhopal'\n    }\n  },\n  {\n    json: {\n      'Contact name': 'Bob Jones',\n      'Email': 'bob@another.com',\n      'Company name': 'AnotherCorp',\n      'phone': '',\n      'Industry': 'Finance',\n      'Location / city': 'Mumbai'\n    }\n  },\n  {\n    json: {\n      'Contact name': 'Alice Smith',\n      'Email': 'alice@testco.com',      // same email as first — will trigger duplicate\n      'Company name': 'TestCo',\n      'phone': '9876543210',\n      'Industry': 'Tech',\n      'Location / city': 'Bhopal'\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        368
+      ],
+      "id": "b88b17ed-ee91-4bfa-8bd9-ec06dda8a0af",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set helper fields": {
+      "main": [
+        [
+          {
+            "node": "Validate input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate input": {
+      "main": [
+        [
+          {
+            "node": "Split in batches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log duplicate": {
+      "main": [
+        [
+          {
+            "node": "Split in batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpApi enrichment": {
+      "main": [
+        [
+          {
+            "node": "Merge Candidate and Enrichment",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Log API fail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log API fail": {
+      "main": [
+        [
+          {
+            "node": "Split in batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait / rate control": {
+      "main": [
+        [
+          {
+            "node": "SerpApi enrichment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Candidate and Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split in batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "duplicate check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Candidate and Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Shape data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "duplicate check": {
+      "main": [
+        [
+          {
+            "node": "is duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Wait / rate control",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape data": {
+      "main": [
+        [
+          {
+            "node": "Quality check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality check": {
+      "main": [
+        [
+          {
+            "node": "Save to Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Candidate and Enrichment1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log quality falied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log quality falied": {
+      "main": [
+        [
+          {
+            "node": "Split in batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "write to internal storage after successful save": {
+      "main": [
+        [
+          {
+            "node": "Merge Candidate and Enrichment1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Save to Sheets": {
+      "main": [
+        [
+          {
+            "node": "write to internal storage after successful save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Candidate and Enrichment1": {
+      "main": [
+        [
+          {
+            "node": "Log success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log success": {
+      "main": [
+        [
+          {
+            "node": "Split in batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Set helper fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "550de5b9-b16a-4a06-958d-b41c0d315948",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "MNdpWt0yCsM9LHmd",
+  "tags": []
+}

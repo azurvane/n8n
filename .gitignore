@@ -20,3 +20,6 @@ Thumbs.db
 # Node.js dependencies (if you install custom npm packages)
 node_modules/
 npm-debug.log*
+
+# extra files
+*.mov
