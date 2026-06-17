@@ -1,0 +1,1038 @@
+{
+  "name": "TAP1002",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        448
+      ],
+      "id": "36ea7219-6ae6-41f0-a598-791da4ff8209",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "10ccd78c-8c6a-46c3-9b11-c1826489e94f",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        16
+      ],
+      "id": "f5038274-6f8b-45f9-a2b0-da1c2c678baa",
+      "name": "Wait",
+      "webhookId": "fd54e364-8d12-4e00-8c3c-81ae37874b42"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "google"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.name }} {{ $json.company ?? '' }} site:linkedin.com OR email"
+            },
+            {
+              "name": "num",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1344,
+        16
+      ],
+      "id": "fdac6d6f-ace5-4cdd-9fdc-fc6a58cb8d9f",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "credentials": {
+        "serpApi": {
+          "id": "NshLcSUtTUnLX8O7",
+          "name": "SerpAPI account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE",
+          "mode": "list",
+          "cachedResultName": "TAP1002",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1414939306,
+          "mode": "list",
+          "cachedResultName": "Run Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit#gid=1414939306"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "linkedin_url": "={{ $json.linkedin_url }}",
+            "status": "duplicate",
+            "error_message": "Duplicate detected via workflow static data memory",
+            "processed_at": "={{ $json.processed_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2240,
+        64
+      ],
+      "id": "c9be6583-d115-4dbd-94f8-3e39d3388345",
+      "name": "Log duplicate",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE",
+          "mode": "list",
+          "cachedResultName": "TAP1002",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1414939306,
+          "mode": "list",
+          "cachedResultName": "Run Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit#gid=1414939306"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "linkedin_url": "={{ $json.linkedin_url }}",
+            "status": "skipped",
+            "processed_at": "={{ $json.processed_at }}",
+            "error_message": "Validation Failed: Missing required fields (name, email, or linkedin_url)."
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        544
+      ],
+      "id": "cc111c07-6dc3-4f06-a8c6-4803ea5be2fa",
+      "name": "Log invalide",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE",
+          "mode": "list",
+          "cachedResultName": "TAP1002",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1155843682,
+          "mode": "list",
+          "cachedResultName": "Clean Output",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit#gid=1155843682"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "linkedin_url ": "={{ $json.linkedin_url }}",
+            "name": "={{ $json.name }}",
+            "run_id": "={{ $json.run_id }}",
+            "processed_at": "={{ $json.processed_at }}",
+            "company": "={{ $json.company }}",
+            "email": "={{ $json.email }}",
+            "title": "={{ $json.title }}",
+            "enriched_bio": "={{ $json.enriched_bio }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "linkedin_url ",
+              "displayName": "linkedin_url ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_bio",
+              "displayName": "enriched_bio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2464,
+        -128
+      ],
+      "id": "75410a12-6e8c-4c31-a075-6b11d5953e2c",
+      "name": "Append or update output",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE",
+          "mode": "list",
+          "cachedResultName": "TAP1002",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1414939306,
+          "mode": "list",
+          "cachedResultName": "Run Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit#gid=1414939306"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "linkedin_url": "={{ $json[\"linkedin_url \"] }}",
+            "status": "Success",
+            "error_message": "None",
+            "processed_at": "={{ $json.processed_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2688,
+        96
+      ],
+      "id": "17f0f873-955f-4122-bfac-96ac14a599bc",
+      "name": "Log success",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE",
+          "mode": "list",
+          "cachedResultName": "TAP1002",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Source Contacts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        448
+      ],
+      "id": "d4fc3a24-abeb-4dc1-a98f-93e60909ee73",
+      "name": "Read source sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "80660525-f2f7-457d-9516-5863a2d9c9a0",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "7dbc483a-72c5-4245-b1ac-95ad6fcdfa53",
+              "name": "processed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        448
+      ],
+      "id": "e70cd4a7-d0c9-4657-9cc3-3d6c8de7a8ed",
+      "name": "Set run fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0728c806-c4ff-4d58-95f8-9f56dd55cfd4",
+              "leftValue": "={{ $json.linkedin_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c6f4c269-10f7-4bdf-84df-4cbf46165492",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        448
+      ],
+      "id": "8f0b2b9c-c703-4636-a490-430299c9953c",
+      "name": "valid row"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "17f908f2-1a50-4091-aa40-a233476e95ec",
+              "name": "=row_number",
+              "value": "={{ $('Wait').item.json.row_number}}",
+              "type": "string"
+            },
+            {
+              "id": "5154489e-d485-41a8-bba2-7124e01ba885",
+              "name": "linkedin_url",
+              "value": "={{ $('Wait').item.json.linkedin_url}}",
+              "type": "string"
+            },
+            {
+              "id": "8e501503-1d52-4948-a330-7f0d31f70a5d",
+              "name": "name",
+              "value": "={{ $('Wait').item.json.name}}",
+              "type": "string"
+            },
+            {
+              "id": "49dfbda7-fbd8-4f57-ac89-fb1bb0705c15",
+              "name": "email",
+              "value": "={{ $('Wait').item.json.email}}",
+              "type": "string"
+            },
+            {
+              "id": "44f29f6b-99a9-43e6-80ea-097d5c162356",
+              "name": "company",
+              "value": "={{ $('Wait').item.json.company}}",
+              "type": "string"
+            },
+            {
+              "id": "19d59700-62d4-4aba-a007-3766f3bf89e0",
+              "name": "title",
+              "value": "={{ $('Wait').item.json.title}}",
+              "type": "string"
+            },
+            {
+              "id": "3c7050ff-7e4b-44a9-bd30-1e8c90f2b427",
+              "name": "run_id",
+              "value": "={{ $('Wait').item.json.run_id}}",
+              "type": "string"
+            },
+            {
+              "id": "29fb48fe-88ec-40c9-8018-0b81a4e7db9f",
+              "name": "processed_at",
+              "value": "={{ $('Wait').item.json.processed_at}}",
+              "type": "string"
+            },
+            {
+              "id": "bab295c0-8363-4323-b6d5-c23115f23a26",
+              "name": "duplicate",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        -32
+      ],
+      "id": "d0f31b61-367a-4d14-b2ab-d06430dea770",
+      "name": "Set clean record"
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\n\n// Initialise the store if it doesn't exist yet\nif (!staticData.processedKeys) {\n  staticData.processedKeys = {};\n}\n\n// Use linkedin_url as the unique key — normalise it so casing/trailing slashes don't matter\nconst recordKey = String($input.item.json.linkedin_url)\n  .trim()\n  .toLowerCase()\n  .replace(/\\/+$/, '');  // strip any trailing slashes\n\n// Check if we've seen this key before in any previous or current run\nconst isDuplicate = staticData.processedKeys[recordKey] !== undefined;\n\n// Reserve the slot immediately so parallel/fast items can't both slip through\nif (!isDuplicate) {\n  staticData.processedKeys[recordKey] = {\n    run_id:       $input.item.json.run_id,\n    name:         $input.item.json.name,\n    reserved_at:  new Date().toISOString()\n  };\n}\n\n// Pass everything forward, just add the duplicate flag\nreturn [{\n  json: {\n    ...$input.item.json,\n    duplicate: isDuplicate\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        -32
+      ],
+      "id": "e014d04e-8347-476a-a0b9-8d3891991135",
+      "name": "Check duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1e1ca0c0-28c1-4b6f-9340-df94f3f6c523",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2016,
+        -32
+      ],
+      "id": "965f590c-1513-44dd-a003-05feaf2a55b9",
+      "name": "is duplicate?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the base item data\nconst itemData = $json;\n\n// 1. Extract base fields directly from the bottom metadata fields\nconst linkedin_url = itemData.linkedin_url || '';\nconst name = itemData.name || '';\nconst company = itemData.company || '';\nconst run_id = itemData.run_id || '';\nconst processed_at = itemData.processed_at || '';\n\n// Initialize fallback variables for fields hidden inside the search results\nlet email = itemData.email || ''; \nlet title = itemData.title || '';\nlet enriched_bio = '';\n\n// 2. Parse through organic search results to find missing details\nif (itemData.organic_results && Array.isArray(itemData.organic_results)) {\n  \n  // Try to find an email from RocketReach results if the source sheet was empty\n  if (!email) {\n    const rocketReachResult = itemData.organic_results.find(res => \n      res.link && res.link.includes('rocketreach.co') && res.snippet && res.snippet.includes('@')\n    );\n    if (rocketReachResult) {\n      // Regex pattern to extract hidden or clear text email patterns from snippet\n      const emailMatch = rocketReachResult.snippet.match(/([a-zA-Z0-9\\._\\*]+@[a-zA-Z0-9\\._\\-]+\\.[a-zA-Z0-9\\._\\-]+)/);\n      if (emailMatch) {\n        email = emailMatch[0];\n      }\n    }\n  }\n\n  // Find the most relevant LinkedIn profile match in the search index to extract actual Title\n  const linkedInResult = itemData.organic_results.find(res => \n    res.link && res.link.includes('linkedin.com/in/')\n  );\n  \n  if (linkedInResult) {\n    // Standardize title extraction from corporate search titles (e.g., \"Aditi Sharma - Software Engineer | Angular\")\n    if (linkedInResult.title) {\n      const titleParts = linkedInResult.title.split('-');\n      if (titleParts.length > 1) {\n        title = titleParts[1].split('|')[0].trim();\n      } else {\n        title = linkedInResult.title;\n      }\n    }\n    // Build a dynamic profile snapshot bio using the snippet text\n    enriched_bio = linkedInResult.snippet || '';\n  } else if (itemData.organic_results[0]) {\n    // Fallback bio: use the snippet of the absolute #1 search result ranking\n    enriched_bio = itemData.organic_results[0].snippet || '';\n  }\n}\n\n// Return the clean, linear object mapping exactly to your Clean Output Sheet headers\nreturn {\n  json: {\n    linkedin_url,\n    name,\n    email,\n    company,\n    title: title || itemData.title || 'Professional at ' + company,\n    enriched_bio,\n    run_id,\n    processed_at\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        -128
+      ],
+      "id": "98521da5-342e-45c7-8bd6-f38ea3d1b3d6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE",
+          "mode": "list",
+          "cachedResultName": "TAP1002",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1414939306,
+          "mode": "list",
+          "cachedResultName": "Run Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11eHxoHZVBLZAJ1v1bF50RXDfITJPkiBc2fmatz46plE/edit#gid=1414939306"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $('Wait').item.json.run_id}}",
+            "processed_at": "={{ $('Wait').item.json.processed_at}}",
+            "linkedin_url": "={{ $('Wait').item.json.linkedin_url}}",
+            "status": "failed",
+            "error_message": "=API failed to get the data"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        160
+      ],
+      "id": "e0f71093-001c-4655-9b72-88d50c9accea",
+      "name": "Log API failure",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read source sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Set clean record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log API failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log invalide": {
+      "main": [
+        []
+      ]
+    },
+    "Append or update output": {
+      "main": [
+        [
+          {
+            "node": "Log success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log duplicate": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read source sheet": {
+      "main": [
+        [
+          {
+            "node": "Set run fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run fields": {
+      "main": [
+        [
+          {
+            "node": "valid row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "valid row": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log invalide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set clean record": {
+      "main": [
+        [
+          {
+            "node": "Check duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate": {
+      "main": [
+        [
+          {
+            "node": "is duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append or update output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log API failure": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a305cc9f-833d-4f7c-a7a0-17105d97b664",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "q7GqxpHrKSGpbXnT",
+  "tags": []
+}

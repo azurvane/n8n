@@ -1,0 +1,1282 @@
+{
+  "name": "TAP1001",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        640
+      ],
+      "id": "d8b8cd1d-a873-4851-8b75-fcca61a4e2e8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs",
+          "mode": "list",
+          "cachedResultName": "Candidate Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2047874457,
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit#gid=2047874457"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{$('Generate Run ID').item.json.run_id}}",
+            "record_key": "none",
+            "timestamp": "={{$now}}",
+            "message": "No rows found in Source_Data",
+            "status": "empty_run"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        736
+      ],
+      "id": "ed850e22-e6eb-48f1-877d-3f8cfdbcd1eb",
+      "name": "Log empty",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1a2b9cf2-4b65-46af-b015-7211f8f95146",
+              "leftValue": "={{ $json.candidate_id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        640
+      ],
+      "id": "8e7b24ed-6d59-4637-b982-a022cdf3fcf7",
+      "name": "Validate Input"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be561788-2da7-4357-92d7-bed13c7edeff",
+              "leftValue": "={{$json.candidate_id}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "343e4365-4f35-4def-9450-60c2befb60df",
+              "leftValue": "={{$json.name}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "b9a9a3c9-9c30-4b43-8776-30fa769d6dc6",
+              "leftValue": "={{$json.email}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "8df393e3-58f2-4d35-a423-3bc85b28e7cf",
+              "leftValue": "={{$json.linkedin}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        112
+      ],
+      "id": "935fa737-5028-4b24-9315-0b60583e88d2",
+      "name": "valid data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs",
+          "mode": "list",
+          "cachedResultName": "Candidate Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2047874457,
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit#gid=2047874457"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "timestamp": "={{ $now }}",
+            "message": "Candidate already processed in a previous run",
+            "record_key": "={{ $json.candidate_id }}",
+            "status": "duplicate"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1792,
+        208
+      ],
+      "id": "df7a72f2-b0bf-4eab-b784-851aa7a65688",
+      "name": "duplicate log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9361454a-c90e-4164-b865-5af06c78606e",
+              "leftValue": "={{ $json.candidate_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d2ed9ce5-6c94-4e37-9aee-d790a5763d9b",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5684e1e1-574c-4919-8657-b08025c10bc6",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3136,
+        16
+      ],
+      "id": "eebf0972-5bfa-46b0-8e8b-c9d04256d1b3",
+      "name": "Quality Filter"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs",
+          "mode": "list",
+          "cachedResultName": "Candidate Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Source_Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        640
+      ],
+      "id": "3103a9db-a170-47b5-ad78-3241d1002677",
+      "name": "READ Source Data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "431bca21-4d3c-44b9-9a20-18d049c84b2d",
+              "name": "run_id",
+              "value": "=RUN_{{$now.format('yyyyMMdd_HHmmss')}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        640
+      ],
+      "id": "9f65c6c6-6808-4448-91f2-7d386e520395",
+      "name": "Generate Run ID"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        896,
+        544
+      ],
+      "id": "c5ad602e-4152-4e01-9d21-1b4ed4e04cbb",
+      "name": "Process One By One"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs",
+          "mode": "list",
+          "cachedResultName": "Candidate Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2047874457,
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit#gid=2047874457"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{$('Generate Run ID').item.json.run_id}}",
+            "record_key": "={{$json.candidate_id}}",
+            "timestamp": "={{ $now }}",
+            "message": "Missing required field",
+            "status": "skipped"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        304
+      ],
+      "id": "c3fcdd96-d5c6-4813-9084-095a44e7e77b",
+      "name": "invalid log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\n\nif (!staticData.processedIds) {\n  staticData.processedIds = {};\n}\n\nconst candidateId = String($input.item.json.candidate_id).trim();\nconst isDuplicate = staticData.processedIds[candidateId] === true;\n\n// Reserve the slot immediately so same-run duplicates are also caught\nif (!isDuplicate) {\n  staticData.processedIds[candidateId] = true;\n}\n\nreturn [{\n  json: {\n    ...$input.item.json,\n    is_duplicate: isDuplicate\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        112
+      ],
+      "id": "7b9f83e0-3d02-44e8-ba9f-0abcdd4f3c0e",
+      "name": "Check Duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8f248957-9724-4624-9b36-ba32f80da89b",
+              "leftValue": "={{ $json.is_duplicate }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        112
+      ],
+      "id": "aff832a1-b91a-45ec-b698-51d2673e0228",
+      "name": "Is Duplicate"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users/1",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2016,
+        112
+      ],
+      "id": "9d668a08-3776-4471-a472-83bfde054aef",
+      "name": "Fetch Enrichment",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "maxTries": 3,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "da430251-72ea-44bc-af11-aa6fcf741c87",
+              "name": "=candidate_id",
+              "value": "={{ $json.candidate_id }}",
+              "type": "string"
+            },
+            {
+              "id": "66c529fa-3400-4e3c-8a89-5ba7346dcf9c",
+              "name": "=name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "8b0a3ac6-3291-4b02-922c-bd9b2bff4d26",
+              "name": "linkedin",
+              "value": "={{ $json.linkedin }}",
+              "type": "string"
+            },
+            {
+              "id": "ffa72e5c-32ab-4b59-9944-d1bc3f4f2829",
+              "name": "=email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "20e5eb72-0934-4dd1-ac46-8b3b49d3a806",
+              "name": "=enrichment_status",
+              "value": "={{ $json.enrichment_status }}",
+              "type": "string"
+            },
+            {
+              "id": "c7b05903-079d-4d1c-a3bf-6074872aa799",
+              "name": "=run_id",
+              "value": "={{ $json.run_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2912,
+        16
+      ],
+      "id": "9028a267-ede0-4bea-afd3-bfb410145dbe",
+      "name": "Transform and Shape Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs",
+          "mode": "list",
+          "cachedResultName": "Candidate Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2047874457,
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit#gid=2047874457"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.candidate_id }}",
+            "timestamp": "={{$now}}",
+            "message": "Record failed quality check after transformation",
+            "status": "filtered"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3360,
+        112
+      ],
+      "id": "c61090e4-d0ed-450a-bd14-693a97bbda5f",
+      "name": "Log Filtered Out",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs",
+          "mode": "list",
+          "cachedResultName": "Candidate Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2109147750,
+          "mode": "list",
+          "cachedResultName": "Clean_Output",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit#gid=2109147750"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{$json.run_id}}",
+            "enrichment_status": "={{$json.enrichment_status}}",
+            "linkedin": "={{$json.linkedin}}",
+            "email": "={{$json.email}}",
+            "name": "={{$json.name}}",
+            "candidate_id": "={{ $json.candidate_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "candidate_id",
+              "displayName": "candidate_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedin",
+              "displayName": "linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enrichment_status",
+              "displayName": "enrichment_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3360,
+        -80
+      ],
+      "id": "c1bfe791-b1f3-4aad-8249-62f2219c3f21",
+      "name": "Save to Clean Output",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs",
+          "mode": "list",
+          "cachedResultName": "Candidate Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2047874457,
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZV_fBP5I3Uzvc876Dmo3BcApxeSq8Ii2e_QzSY2CYXs/edit#gid=2047874457"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "timestamp": "={{ $now }}",
+            "message": "Record processed and saved successfully",
+            "status": "success",
+            "record_key": "={{ $json.candidate_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3584,
+        192
+      ],
+      "id": "519fdb59-e04e-42bb-be8d-26bdb783298b",
+      "name": "Log Success",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Extract the main data object for cleaner access\nconst itemData = $input.item.json || {};\n\n// 2. Determine company enrichment status\nconst companyName = itemData.company?.name || 'N/A';\nconst enrichmentStatus = itemData.company?.name ? 'enriched' : 'enrichment_failed';\n\n// 3. Determine the name based on the duplicate flag logic\nlet finalName = null;\nif (itemData.is_duplicate !== undefined) {\n  finalName = itemData.name || null;\n}\n\n// 4. Return the structured payload\nreturn [{\n  json: {\n    candidate_id: itemData.candidate_id || null,\n    name: finalName,\n    email: itemData.email || null,\n    linkedin: itemData.linkedin || null,\n    run_id: itemData.run_id || null,\n    enrichment_status: enrichmentStatus,\n    enriched_company: companyName\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        16
+      ],
+      "id": "bb1ee09e-0f0f-4c1c-bd7c-b97a61a8aa59",
+      "name": "Handle Retry Logic"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2464,
+        16
+      ],
+      "id": "91bdbaad-2574-4ed1-9a70-823c44738be0",
+      "name": "Merge Candidate and Enrichment"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        16
+      ],
+      "id": "92e9ec7c-7407-492e-b22a-dbb3bb3f5257",
+      "name": "Rate Control",
+      "webhookId": "1c929744-e343-470c-b0b0-ae1fb70e517e"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "64e54373-130f-43ba-bf2f-30ed502b4abe",
+              "name": "name",
+              "value": "={{ $('Rate Control').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "5977a7df-ae72-4343-9562-ef23c451951b",
+              "name": "email",
+              "value": "={{ $('Rate Control').item.json.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2240,
+        112
+      ],
+      "id": "528370d4-fd47-46f0-bf23-3e353cf1b45b",
+      "name": "Preserve Candidate Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "READ Source Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Process One By One",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log empty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "valid data": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "invalid log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "duplicate log": {
+      "main": [
+        [
+          {
+            "node": "Process One By One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Filter": {
+      "main": [
+        [
+          {
+            "node": "Save to Clean Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Filtered Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "READ Source Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process One By One": {
+      "main": [
+        [],
+        [
+          {
+            "node": "valid data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "invalid log": {
+      "main": [
+        [
+          {
+            "node": "Process One By One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Is Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Duplicate": {
+      "main": [
+        [
+          {
+            "node": "duplicate log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rate Control",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Preserve Candidate Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform and Shape Data": {
+      "main": [
+        [
+          {
+            "node": "Quality Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Filtered Out": {
+      "main": [
+        [
+          {
+            "node": "Process One By One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Clean Output": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Process One By One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Retry Logic": {
+      "main": [
+        [
+          {
+            "node": "Transform and Shape Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Candidate and Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Handle Retry Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Control": {
+      "main": [
+        [
+          {
+            "node": "Fetch Enrichment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Candidate and Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preserve Candidate Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge Candidate and Enrichment",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "77ef843e-e062-477c-9299-d877b7650858",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "06RH8LJWmPFRbUsX",
+  "tags": []
+}
