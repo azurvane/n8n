@@ -1,0 +1,1509 @@
+{
+  "name": "HR0005",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        448
+      ],
+      "id": "33607bf9-4d39-4d1c-98f3-169791278180",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7440019d-0851-499c-8dd5-26270a34212a",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "0f37b8c0-b323-4d2d-9a1a-2df407cea78c",
+              "name": "record_key",
+              "value": "={{ $json.linkedin_url.trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "d99650f0-8b2a-459a-b40a-2e1c1f721a34",
+              "name": "duplicate",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        448
+      ],
+      "id": "6f1fcc63-89c2-4141-9c3f-7b7f0a6b92df",
+      "name": "Set run ID"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo",
+          "mode": "list",
+          "cachedResultName": "HR0005",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "source_contacts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        448
+      ],
+      "id": "103a0d23-889a-4447-bad7-6974a984dd80",
+      "name": "Read source sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo",
+          "mode": "list",
+          "cachedResultName": "HR0005",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1642084320,
+          "mode": "list",
+          "cachedResultName": "run_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit#gid=1642084320"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "processed_at": "={{ $now.toISO() }}",
+            "status": "skipped",
+            "error_message": "Missing required field"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        544
+      ],
+      "id": "99ce5889-4c26-4bd6-b2fa-81c157040b7f",
+      "name": "Log skipped record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "800b7b4e-7036-4e7c-9dbc-5ad3f6345d75",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo",
+          "mode": "list",
+          "cachedResultName": "HR0005",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1642084320,
+          "mode": "list",
+          "cachedResultName": "run_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit#gid=1642084320"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "duplicate",
+            "error_message": "no enrichment or save happens for this item",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        112
+      ],
+      "id": "647e5845-c7b8-4a57-bf61-d781009d6caa",
+      "name": "Log duplicate",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        -80
+      ],
+      "id": "3701b615-fd0b-4c95-97c4-bb8bac1526ed",
+      "name": "Wait",
+      "webhookId": "d0b11342-bd7d-4d52-99e1-e71666dd08b0"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "google"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.name }} {{ $json.company }}"
+            },
+            {
+              "name": "num",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1792,
+        -80
+      ],
+      "id": "f248401a-f927-4347-b2db-9ba147e18dec",
+      "name": "HTTP Request",
+      "credentials": {
+        "serpApi": {
+          "id": "NshLcSUtTUnLX8O7",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c1d2996b-e154-483b-92ce-1fa2c43c4439",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d403bd56-7020-461d-9c50-ee1948fc538e",
+              "leftValue": "={{ $json.company }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        448
+      ],
+      "id": "91155382-02bd-4708-94f3-ee323291f1c1",
+      "name": "Validate input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nif (!staticData.processedKeys) {\n  staticData.processedKeys = {};\n}\n\nconst recordKey = String($input.item.json.record_key).trim().toLowerCase();\n\n// Check if key exists\nconst isDuplicate = staticData.processedKeys[recordKey] !== undefined;\n\n// Reserve the slot immediately to prevent same-batch race conditions\nif (!isDuplicate) {\n  staticData.processedKeys[recordKey] = 'reserved';\n}\n\nreturn [{\n  json: {\n    ...$input.item.json,\n    duplicate: isDuplicate\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -80
+      ],
+      "id": "0ece1e64-9edd-4942-bb09-cb472d45d325",
+      "name": "Check duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b6fd721c-8fe4-4c1c-83d0-70f51d094b89",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        -80
+      ],
+      "id": "fe93b6f8-8fb3-4d99-88ca-afb06978eb29",
+      "name": "is Duplicate?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ec579495-ddce-4951-9173-7ae0f1f2f7b2",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a3c04e60-c34c-4c4c-9f55-9ad2db17b409",
+              "leftValue": "={{ $json.company }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "118f735d-3990-46b6-be76-89be471336f2",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "1624d5e6-a07b-4f93-977c-c8343f40697f",
+              "leftValue": "={{ $json.link }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2240,
+        -80
+      ],
+      "id": "df9ba4c7-bfe3-4974-be85-760ef8a38aaa",
+      "name": "Quality filter"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.item.json;\nconst result = (input.organic_results && input.organic_results[0]) || {};\n\nconst rawTitle = result.title || '';\nlet cleanTitle = rawTitle;\nconst link = result.link || '';\nconst snippet = result.snippet || '';\n\n\n// Regex to capture everything between \"- \" and \" at\"\nconst match = rawTitle.match(/-\\s+(.*?)\\s+at/);\n\nif (match && match[1]) {\n  cleanTitle = match[1].trim();\n} else {\n  // Fallback: If \" at\" isn't found, just grab everything after the dash\n  const dashIndex = rawTitle.indexOf('-');\n  if (dashIndex !== -1) {\n    cleanTitle = rawTitle.substring(dashIndex + 1).split(' at')[0].trim();\n  }\n}\n\nreturn [{\n  json: {\n    run_id: $('Set run ID').item.json.run_id,\n    record_key: $('Set run ID').item.json.record_key,\n    name: $('Set run ID').item.json.name,\n    company: $('Set run ID').item.json.company,\n    title: cleanTitle, // Now returns \"Financial Crime\"\n    link: link,\n    snippet: snippet,\n    processed_at: $now.toISO()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        -80
+      ],
+      "id": "608aba45-505d-49d4-b490-8f9686a6d595",
+      "name": "Shape output"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo",
+          "mode": "list",
+          "cachedResultName": "HR0005",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1642084320,
+          "mode": "list",
+          "cachedResultName": "run_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit#gid=1642084320"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "skipped",
+            "error_message": "insufficient data after enrichment",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2464,
+        16
+      ],
+      "id": "def735d7-941e-44a4-b0ac-7a37adfae28f",
+      "name": "Log unusable record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo",
+          "mode": "list",
+          "cachedResultName": "HR0005",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 697290497,
+          "mode": "list",
+          "cachedResultName": "clean_output",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit#gid=697290497"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "name": "={{ $json.name }}",
+            "company": "={{ $json.company }}",
+            "title": "={{ $json.title }}",
+            "link": "={{ $json.link }}",
+            "snippet": "={{ $json.snippet }}",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "snippet",
+              "displayName": "snippet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2464,
+        -176
+      ],
+      "id": "9e92f1cb-4d79-4b38-bded-95e7defe5849",
+      "name": "Save to output",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo",
+          "mode": "list",
+          "cachedResultName": "HR0005",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1642084320,
+          "mode": "list",
+          "cachedResultName": "run_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J5oA_9DWqzfL4-VR4qRcWTmxiFN_TqSUoM9gnPVj3Fo/edit#gid=1642084320"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "success",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2688,
+        0
+      ],
+      "id": "a21e489d-fe73-4957-819f-ef9918d565b7",
+      "name": "Log: success",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "HTTP Request": [
+      {
+        "json": {
+          "search_metadata": {
+            "id": "6a352cd0895d9028aca18e2e",
+            "status": "Success",
+            "json_endpoint": "https://serpapi.com/searches/2l5sDF-FI9nSh2LKxCFnmg/6a352cd0895d9028aca18e2e.json",
+            "pixel_position_endpoint": "https://serpapi.com/searches/2l5sDF-FI9nSh2LKxCFnmg/6a352cd0895d9028aca18e2e.json_with_pixel_position",
+            "created_at": "2026-06-19 11:49:36 UTC",
+            "processed_at": "2026-06-19 11:49:36 UTC",
+            "google_url": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&oq=Aditi+Sharma+Commonwealth+Bank&sourceid=chrome&ie=UTF-8",
+            "raw_html_file": "https://serpapi.com/searches/2l5sDF-FI9nSh2LKxCFnmg/6a352cd0895d9028aca18e2e.html",
+            "total_time_taken": 0.89
+          },
+          "search_parameters": {
+            "engine": "google",
+            "q": "Aditi Sharma Commonwealth Bank",
+            "google_domain": "google.com",
+            "device": "desktop"
+          },
+          "search_information": {
+            "query_displayed": "Aditi Sharma Commonwealth Bank",
+            "total_results": 111,
+            "time_taken_displayed": 0.18,
+            "organic_results_state": "Results for exact spelling"
+          },
+          "related_questions": [
+            {
+              "question": "Is Aditi Sharma married or not?",
+              "type": "featured_snippet",
+              "snippet": "Aditi and Abhineet got married in November 2024 and are now headed for divorce. Abhineet has also accused Aditi of cheating on him with her Apollena co-star. He also alleged that Aditi has asked for Rs 25 lakh in settlement.",
+              "title": "Aditi Sharma finally speaks up on her secret marriage and divorce with ...",
+              "date": "Mar 12, 2025",
+              "link": "https://www.moneycontrol.com/entertainment/aditi-sharma-finally-speaks-up-on-her-secret-marriage-and-divorce-with-husband-abhineet-kaushik-i-am-being-threatened-article-12963142.html#:~:text=Aditi%20and%20Abhineet%20got%20married,Rs%2025%20lakh%20in%20settlement.",
+              "displayed_link": "https://www.moneycontrol.com › entertainment › aditi-s...",
+              "source_logo": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAABVElEQVR4AWL48-cvI4BTakiMIACC85vYPMe2bdu2bdu2bdu2jQfUIjYObSOmcsSd1zr3hM4wA78BHquck-iKYU9KLBFXPeZONfwDoshJiI-Vfw_cljlnxEdDOlgt4sBslkDlP9rf6p4T0BpkQC5KFwY5IjApECADP5VXSVCDeLA5-L1dIORnD9kIw68TkAN_BPVkpZ8TTOz0YO5gBNvny-hZrcXh9Rbiu1x_n-D8_ghhLVYY2epA01wBcgZDMbnb97cEDuXyaF8qR_5wFOI6XTC9N_D7BHuX67Avk0MjuXo2uXp0uwO5m_ZfJ_j_EjVSFCAVZgIhf1uIBlpBNlIfmqlyMM4XpAYb5wmST2rxIcHLg1Ah4wMwGKeAwzoKTKZJH2wEt1XO2b9f2Sr3gggp7ietiVwDOpYfaWH4_ecPU9fKY60mOfPfEavROHv--7Zlh9tAegG4y08IgYHbTgAAAABJRU5ErkJggg.png",
+              "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJUVzR6TFhsVFpFSkJNakIxYzFVMlRucGpjSGhvVW5WSFFVZGliR0l3VW5ZNFJHZE9Rbmx1Y0VNd1gzUklNRW94TlU0eFdHOWpiVk5yVEVkMk4ySjFNRTFYZUUxeVozaExUbTQyUkdNeVRqUjBaVVZNWVRSYU5XUlpaVE5xV25GUVVSSVhNRU4zTVdGd2JtZEpkRWhPYTFCSlVERlBjWE0yVVUwYUlrRktTMHhHYlVwVVVIZFVNMG8yVkRseWNqVnpZMVE0TWw5NlNuTmpUVzh0WW5jIiwiZmN2IjoiMyIsImVpIjoiMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU0iLCJxYyI6IkNoNWhaR2wwYVNCemFHRnliV0VnWTI5dGJXOXVkMlZoYkhSb0lHSmhibXNRQUgxWDBpTV8iLCJxdWVzdGlvbiI6IklzIEFkaXRpIFNoYXJtYSBtYXJyaWVkIG9yIG5vdD8iLCJsayI6IkdodGhaR2wwYVNCemFHRnliV0VnYldGeWNtbGxaQ0J2Y2lCdWIzUSIsImJzIjoiYy1OeTVwTDNMRlp3VE1rc3lWUUl6a2dzeWsxVXlFMHNLc3BNVFZISUwxTEl5eS14bDNqSVp5UXJKWjBJVmxLTVRRa1gwSkR3ak1RU2hVdzBrMUx5TV9QU2dTcks3WTBVcE9US29VcFFUSUlyNFhMaWtnM1BTQzFLQlFxbG9wbVRrMW1XYWkteEw4MUlUa3FtSEtFR3hTQ1FHZ0ZHQUEiLCJpZCI6ImZjXzBDdzFhcG5nSXRITmtQSVAxT3FzNlFNXzIifQ==",
+              "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJUVzR6TFhsVFpFSkJNakIxYzFVMlRucGpjSGhvVW5WSFFVZGliR0l3VW5ZNFJHZE9Rbmx1Y0VNd1gzUklNRW94TlU0eFdHOWpiVk5yVEVkMk4ySjFNRTFYZUUxeVozaExUbTQyUkdNeVRqUjBaVVZNWVRSYU5XUlpaVE5xV25GUVVSSVhNRU4zTVdGd2JtZEpkRWhPYTFCSlVERlBjWE0yVVUwYUlrRktTMHhHYlVwVVVIZFVNMG8yVkRseWNqVnpZMVE0TWw5NlNuTmpUVzh0WW5jIiwiZmN2IjoiMyIsImVpIjoiMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU0iLCJxYyI6IkNoNWhaR2wwYVNCemFHRnliV0VnWTI5dGJXOXVkMlZoYkhSb0lHSmhibXNRQUgxWDBpTV8iLCJxdWVzdGlvbiI6IklzIEFkaXRpIFNoYXJtYSBtYXJyaWVkIG9yIG5vdD8iLCJsayI6IkdodGhaR2wwYVNCemFHRnliV0VnYldGeWNtbGxaQ0J2Y2lCdWIzUSIsImJzIjoiYy1OeTVwTDNMRlp3VE1rc3lWUUl6a2dzeWsxVXlFMHNLc3BNVFZISUwxTEl5eS14bDNqSVp5UXJKWjBJVmxLTVRRa1gwSkR3ak1RU2hVdzBrMUx5TV9QU2dTcks3WTBVcE9US29VcFFUSUlyNFhMaWtnM1BTQzFLQlFxbG9wbVRrMW1XYWkteEw4MUlUa3FtSEtFR3hTQ1FHZ0ZHQUEiLCJpZCI6ImZjXzBDdzFhcG5nSXRITmtQSVAxT3FzNlFNXzIifQ%3D%3D"
+            },
+            {
+              "question": "What is Aditi Sharma doing now?",
+              "type": "ai_overview",
+              "page_token": "S4iQ23icHdBdboIwAADg7DJ7VMCfDROzpNKqbNS0tkX6skiroi0_ExTkbXfZqXaaJfuO8H3_2HNhfp_uWdNU9Ww4bNt2cCrLkz0MVJkP9_WjUEO1tzbdKzObvkzdt6Oaw9saLL7WgHD3Fj3cCRdZzOPunAZotEX-khUW6xzVvMdSmHEnjX_nF8oOO9piVB0ThwabWH5Q3nB1Qe7B4iC-ZDVeVSRyszPzRCcC2WsTQoX8BfaQ1auw2cY6I715YKcC0apaSkRzjQDRKITaYJLsoj5dEi8xHYgQaFOIV6SQBRNhkKKyYa7Y0HjtbGKci149Et5NVRAC5fnvdIdBwvBY55bCTLVkpLpkB27Ssc4WTq4cWhJxv1O9pIyWZ8KrDwZls_XCmsK238BszBbuXTsCEvHq7j3uaTiZ0t6Mdft8VPf56Pn_c_55zJtZdS1Pf4yVgsQ",
+              "serpapi_ai_overview_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=S4iQ23icHdBdboIwAADg7DJ7VMCfDROzpNKqbNS0tkX6skiroi0_ExTkbXfZqXaaJfuO8H3_2HNhfp_uWdNU9Ww4bNt2cCrLkz0MVJkP9_WjUEO1tzbdKzObvkzdt6Oaw9saLL7WgHD3Fj3cCRdZzOPunAZotEX-khUW6xzVvMdSmHEnjX_nF8oOO9piVB0ThwabWH5Q3nB1Qe7B4iC-ZDVeVSRyszPzRCcC2WsTQoX8BfaQ1auw2cY6I715YKcC0apaSkRzjQDRKITaYJLsoj5dEi8xHYgQaFOIV6SQBRNhkKKyYa7Y0HjtbGKci149Et5NVRAC5fnvdIdBwvBY55bCTLVkpLpkB27Ssc4WTq4cWhJxv1O9pIyWZ8KrDwZls_XCmsK238BszBbuXTsCEvHq7j3uaTiZ0t6Mdft8VPf56Pn_c_55zJtZdS1Pf4yVgsQ",
+              "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJUVzR6TFhsVFpFSkJNakIxYzFVMlRucGpjSGhvVW5WSFFVZGliR0l3VW5ZNFJHZE9Rbmx1Y0VNd1gzUklNRW94TlU0eFdHOWpiVk5yVEVkMk4ySjFNRTFYZUUxeVozaExUbTQyUkdNeVRqUjBaVVZNWVRSYU5XUlpaVE5xV25GUVVSSVhNRU4zTVdGd2JtZEpkRWhPYTFCSlVERlBjWE0yVVUwYUlrRktTMHhHYlVwVVVIZFVNMG8yVkRseWNqVnpZMVE0TWw5NlNuTmpUVzh0WW5jIiwiZmN2IjoiMyIsImVpIjoiMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU0iLCJxYyI6IkNoNWhaR2wwYVNCemFHRnliV0VnWTI5dGJXOXVkMlZoYkhSb0lHSmhibXNRQUgxWDBpTV8iLCJxdWVzdGlvbiI6IldoYXQgaXMgQWRpdGkgU2hhcm1hIGRvaW5nIG5vdz8iLCJsayI6IkdoNTNhR0YwSUdseklHRmthWFJwSUhOb1lYSnRZU0JrYjJsdVp5QnViM2MiLCJicyI6ImMtTnk1cEwzTEZad1RNa3N5VlFJemtnc3lrMVV5RTBzS3NwTVRWSElMMUxJeXkteGwzaklaeVFySlowSVZsS01UUWtYMEpEd2pNUVNoVXcwazFMeU1fUFNnU3JLN1kwVXBPVEtvVXBRVElJcjRYTGlrZzNQU0MxS0JRcWxvcG1UazFtV2FpLXhMODFJVGtxbUhLRUd4U0NRR2dGR0FBIiwiaWQiOiJmY18wQ3cxYXBuZ0l0SE5rUElQMU9xczZRTV8yIn0=",
+              "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJUVzR6TFhsVFpFSkJNakIxYzFVMlRucGpjSGhvVW5WSFFVZGliR0l3VW5ZNFJHZE9Rbmx1Y0VNd1gzUklNRW94TlU0eFdHOWpiVk5yVEVkMk4ySjFNRTFYZUUxeVozaExUbTQyUkdNeVRqUjBaVVZNWVRSYU5XUlpaVE5xV25GUVVSSVhNRU4zTVdGd2JtZEpkRWhPYTFCSlVERlBjWE0yVVUwYUlrRktTMHhHYlVwVVVIZFVNMG8yVkRseWNqVnpZMVE0TWw5NlNuTmpUVzh0WW5jIiwiZmN2IjoiMyIsImVpIjoiMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU0iLCJxYyI6IkNoNWhaR2wwYVNCemFHRnliV0VnWTI5dGJXOXVkMlZoYkhSb0lHSmhibXNRQUgxWDBpTV8iLCJxdWVzdGlvbiI6IldoYXQgaXMgQWRpdGkgU2hhcm1hIGRvaW5nIG5vdz8iLCJsayI6IkdoNTNhR0YwSUdseklHRmthWFJwSUhOb1lYSnRZU0JrYjJsdVp5QnViM2MiLCJicyI6ImMtTnk1cEwzTEZad1RNa3N5VlFJemtnc3lrMVV5RTBzS3NwTVRWSElMMUxJeXkteGwzaklaeVFySlowSVZsS01UUWtYMEpEd2pNUVNoVXcwazFMeU1fUFNnU3JLN1kwVXBPVEtvVXBRVElJcjRYTGlrZzNQU0MxS0JRcWxvcG1UazFtV2FpLXhMODFJVGtxbUhLRUd4U0NRR2dGR0FBIiwiaWQiOiJmY18wQ3cxYXBuZ0l0SE5rUElQMU9xczZRTV8yIn0%3D"
+            },
+            {
+              "question": "Where does Aditi Sharma live?",
+              "type": "featured_snippet",
+              "snippet": "Currently, her family resides in Lucknow. In 2014, Aditi Sharma married Sarwar Ahuja, an actor from Bollywood. They met when they were contestants in the 2004 Zee TV talent hunt reality show India's Best Cinestars Ki Khoj.",
+              "title": "Aditi Sharma (actress, born 1983) - Wikipedia",
+              "link": "https://en.wikipedia.org/wiki/Aditi_Sharma_(actress,_born_1983)#:~:text=Currently%2C%20her%20family%20resides%20in,India's%20Best%20Cinestars%20Ki%20Khoj.",
+              "displayed_link": "https://en.wikipedia.org › wiki › Aditi_Sharma_(actress,_...",
+              "source_logo": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAM1BMVEUAAAD-_v7MzMw7OzsAAACVlZVJSUnm5uampqYXFxfZ2dkBAQGzs7MnJyeGhoZpaWl5eXkOJSOoAAAAAXRSTlMAQObYZgAAAGpJREFUeAFtz7UBxEAQBMHtgwXpKP9kn_k13pTXIsLH5OfD74d_SLlUtFTL2Tx0E2xvWL-gQQYBzeDRBni9QSoJegeUG6AKMyCtB7R9Q8OZ9gD6anV0mzzBd8X2nF5AVJjKGzYAO4yRv_wzhDIC9UYsU1MAAAAASUVORK5CYII.png",
+              "next_page_token": "eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJUVzR6TFhsVFpFSkJNakIxYzFVMlRucGpjSGhvVW5WSFFVZGliR0l3VW5ZNFJHZE9Rbmx1Y0VNd1gzUklNRW94TlU0eFdHOWpiVk5yVEVkMk4ySjFNRTFYZUUxeVozaExUbTQyUkdNeVRqUjBaVVZNWVRSYU5XUlpaVE5xV25GUVVSSVhNRU4zTVdGd2JtZEpkRWhPYTFCSlVERlBjWE0yVVUwYUlrRktTMHhHYlVwVVVIZFVNMG8yVkRseWNqVnpZMVE0TWw5NlNuTmpUVzh0WW5jIiwiZmN2IjoiMyIsImVpIjoiMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU0iLCJxYyI6IkNoNWhaR2wwYVNCemFHRnliV0VnWTI5dGJXOXVkMlZoYkhSb0lHSmhibXNRQUgxWDBpTV8iLCJxdWVzdGlvbiI6IldoZXJlIGRvZXMgQWRpdGkgU2hhcm1hIGxpdmU/IiwibGsiOiJHaHgzYUdWeVpTQmtiMlZ6SUdGa2FYUnBJSE5vWVhKdFlTQnNhWFpsIiwiYnMiOiJjLU55NXBMM0xGWndUTWtzeVZRSXprZ3N5azFVeUUwc0tzcE1UVkhJTDFMSXl5LXhsM2pJWnlRckpaMElWbEtNVFFrWDBKRHdqTVFTaFV3MGsxTHlNX1BTZ1NySzdZMFVwT1RLb1VwUVRJSXI0WExpa2czUFNDMUtCUXFsb3BtVGsxbVdhaS14TDgxSVRrcW1IS0VHeFNDUUdnRkdBQSIsImlkIjoiZmNfMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU1fMiJ9",
+              "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_related_questions&google_domain=google.com&next_page_token=eyJvbnMiOiIxMDA0MSIsImZjIjoiRXFFQkNtSkJUVzR6TFhsVFpFSkJNakIxYzFVMlRucGpjSGhvVW5WSFFVZGliR0l3VW5ZNFJHZE9Rbmx1Y0VNd1gzUklNRW94TlU0eFdHOWpiVk5yVEVkMk4ySjFNRTFYZUUxeVozaExUbTQyUkdNeVRqUjBaVVZNWVRSYU5XUlpaVE5xV25GUVVSSVhNRU4zTVdGd2JtZEpkRWhPYTFCSlVERlBjWE0yVVUwYUlrRktTMHhHYlVwVVVIZFVNMG8yVkRseWNqVnpZMVE0TWw5NlNuTmpUVzh0WW5jIiwiZmN2IjoiMyIsImVpIjoiMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU0iLCJxYyI6IkNoNWhaR2wwYVNCemFHRnliV0VnWTI5dGJXOXVkMlZoYkhSb0lHSmhibXNRQUgxWDBpTV8iLCJxdWVzdGlvbiI6IldoZXJlIGRvZXMgQWRpdGkgU2hhcm1hIGxpdmU%2FIiwibGsiOiJHaHgzYUdWeVpTQmtiMlZ6SUdGa2FYUnBJSE5vWVhKdFlTQnNhWFpsIiwiYnMiOiJjLU55NXBMM0xGWndUTWtzeVZRSXprZ3N5azFVeUUwc0tzcE1UVkhJTDFMSXl5LXhsM2pJWnlRckpaMElWbEtNVFFrWDBKRHdqTVFTaFV3MGsxTHlNX1BTZ1NySzdZMFVwT1RLb1VwUVRJSXI0WExpa2czUFNDMUtCUXFsb3BtVGsxbVdhaS14TDgxSVRrcW1IS0VHeFNDUUdnRkdBQSIsImlkIjoiZmNfMEN3MWFwbmdJdEhOa1BJUDFPcXM2UU1fMiJ9"
+            }
+          ],
+          "ai_overview": {
+            "page_token": "eNzUunicxVXdkqo4EL7f91hvZhTQmSNOFXUqICg6iplfPTcURgT5i0NQ1LvzLvtSu0-z4UeFWRxrT9XWtkVC2k53p9Mf388_vFXg_vXbn3YUrckDw8Rx3LAwtjyzgbDPGGQfIGaJPRIi-zvBmxCZq4WA7BD7Zm2_FVo1RAS2Zq4EVoo5Yx1YatQfuxN1wmkf5Bsc1VIXgj43iOnQCDuHMDpDB_f3VpcuGqRhBo11Z4lng6EWL0mjyXKdhsYYPjUA_6lYkppMMv1JdJYqLIAMrzgRqZEFgHtSqOfNJ4mTAYo0lpxtqvaaWCTiqjQlMDmMl0ADYuZHu5hBalyMlWQgSSCJ8ZxkoVbtkr_QKelYUY9cxKrck2GYL9CVQJnz2XlJN1oqWAKwOgeJM7tCGSGU8lpSc5HvOuDFll8vpknlA4Ad7rti_PSVFQ0jKibA2XtPDGnSzMKiDcgy85BOHLNCNkpfQpL0pfTSYbGMZ_1tsx-RlufutQNnTd3WW2_Tbc48wKA5tfOwsTAXuq2z39M11-Tu2U6rzd-mgEDkhAhSRETPBztuoqJn_q7x2BC5AhzSMqvFoqSlFKurnF9I6b5O15q1hSwns3XWK8f_LeOIjFwwl1zs6LSeJFeo_qOVE0UFHEqxQd7sLsgQlOdQOhcQB-Do_Hw8Ma4IV3iz6AF6Jzei_cm2EEBMkAPTl9SnWAwuA1GSoZXWTlHzvFHpOGrxNFLijro_-jhmlZYenT1Tg0SlAkcCXTAAmH6DcgDDRJ35HyYby4VVy-cmNOQ7vAzRL0W5biIfG_9THxf7vze294h_nuGXw_DRPRx2Dj-EhjMnszWs7nfsz_8FBaD_GxE5QShHgqhEBLyCCNre8DJB5M7OBJEhwoaViHjKEVEmiKwzzgTxGRGqIhcRcZkgSoiQryJCuogIEVxAxLACEW4lInKCKCDCVmGJIAZlgjgh4lcIQvkVgkjxYWZTmS02jnWRNfq7ILh71OPd1OjsNNDdxDLqj36sPL8ZX2WNpR89-MbCu9VXiwexOYj2i1udKvCDuah9CGCxilY3z7YR-saNhH0fB7FpeJF9IxqBW_O9EAusca9rrvcakfvhlNPCw1sf7tSnvQmd-tzasptt-wN0t_q6DbeE6zukj6V344cRdZYt8dVxtfdRe8Zp3f1U0-tb_l6pE9_VulH0NhlOnGcZKu_v0wn_isYDwLutJn9wHeep57N1FIzc7Xw2BBv_dUmvTQ800N-mWRHhrSUr9faT25nxNT9EggTUOxeMYfIxR0CaAShZ9MH0iWkv1QgydJNsBb7NNQ2jPWfvm82F-c2s-Va0Xwt3XI0EocD9DTJ1G0c",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_ai_overview&page_token=eNzUunicxVXdkqo4EL7f91hvZhTQmSNOFXUqICg6iplfPTcURgT5i0NQ1LvzLvtSu0-z4UeFWRxrT9XWtkVC2k53p9Mf388_vFXg_vXbn3YUrckDw8Rx3LAwtjyzgbDPGGQfIGaJPRIi-zvBmxCZq4WA7BD7Zm2_FVo1RAS2Zq4EVoo5Yx1YatQfuxN1wmkf5Bsc1VIXgj43iOnQCDuHMDpDB_f3VpcuGqRhBo11Z4lng6EWL0mjyXKdhsYYPjUA_6lYkppMMv1JdJYqLIAMrzgRqZEFgHtSqOfNJ4mTAYo0lpxtqvaaWCTiqjQlMDmMl0ADYuZHu5hBalyMlWQgSSCJ8ZxkoVbtkr_QKelYUY9cxKrck2GYL9CVQJnz2XlJN1oqWAKwOgeJM7tCGSGU8lpSc5HvOuDFll8vpknlA4Ad7rti_PSVFQ0jKibA2XtPDGnSzMKiDcgy85BOHLNCNkpfQpL0pfTSYbGMZ_1tsx-RlufutQNnTd3WW2_Tbc48wKA5tfOwsTAXuq2z39M11-Tu2U6rzd-mgEDkhAhSRETPBztuoqJn_q7x2BC5AhzSMqvFoqSlFKurnF9I6b5O15q1hSwns3XWK8f_LeOIjFwwl1zs6LSeJFeo_qOVE0UFHEqxQd7sLsgQlOdQOhcQB-Do_Hw8Ma4IV3iz6AF6Jzei_cm2EEBMkAPTl9SnWAwuA1GSoZXWTlHzvFHpOGrxNFLijro_-jhmlZYenT1Tg0SlAkcCXTAAmH6DcgDDRJ35HyYby4VVy-cmNOQ7vAzRL0W5biIfG_9THxf7vze294h_nuGXw_DRPRx2Dj-EhjMnszWs7nfsz_8FBaD_GxE5QShHgqhEBLyCCNre8DJB5M7OBJEhwoaViHjKEVEmiKwzzgTxGRGqIhcRcZkgSoiQryJCuogIEVxAxLACEW4lInKCKCDCVmGJIAZlgjgh4lcIQvkVgkjxYWZTmS02jnWRNfq7ILh71OPd1OjsNNDdxDLqj36sPL8ZX2WNpR89-MbCu9VXiwexOYj2i1udKvCDuah9CGCxilY3z7YR-saNhH0fB7FpeJF9IxqBW_O9EAusca9rrvcakfvhlNPCw1sf7tSnvQmd-tzasptt-wN0t_q6DbeE6zukj6V344cRdZYt8dVxtfdRe8Zp3f1U0-tb_l6pE9_VulH0NhlOnGcZKu_v0wn_isYDwLutJn9wHeep57N1FIzc7Xw2BBv_dUmvTQ800N-mWRHhrSUr9faT25nxNT9EggTUOxeMYfIxR0CaAShZ9MH0iWkv1QgydJNsBb7NNQ2jPWfvm82F-c2s-Va0Xwt3XI0EocD9DTJ1G0c"
+          },
+          "organic_results": [
+            {
+              "position": 1,
+              "title": "Aditi Sharma - Financial Crime at Commonwealth Bank of ...",
+              "link": "https://au.linkedin.com/in/aditisharma8",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://au.linkedin.com/in/aditisharma8&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECCMQAQ",
+              "displayed_link": "2.6K+ followers",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAm0lEQVR4AWP4__8_RRhMyLfs3sNQvOk_KRikB24ATNB2yhEQJtoQuAEwzVAAYtPVAMJe4Cjf8l-0bsd_RkIGQAGc_ej9t_-TDt_7_-vPXzD_6Yfv_-2nHSXWAAT49P33_z9__4HZl559JM2Aqm3XwXyXGcfA_H___pFmgFj9DjCfp3IrTIgkA5ADbbAbQA6mKDPp9x7YBTOAIgwAVba5DGceMlQAAAAASUVORK5CYII.png",
+              "snippet": "Result oriented banking and finance professional with 8+ years of experience in financial statement analysis and reporting, budgeting & forecasting, ...",
+              "snippet_highlighted_words": [
+                "Result oriented banking and finance professional"
+              ],
+              "rich_snippet": {
+                "top": {
+                  "extensions": [
+                    "Sydney, New South Wales, Australia",
+                    "Financial Crime",
+                    "Commonwealth Bank"
+                  ]
+                }
+              },
+              "about_this_result": {
+                "source": {
+                  "description": "Result oriented banking and finance professional with 8+ years of experience in financial statement analysis and reporting, budgeting & forecasting, ...",
+                  "source_info_link": "https://au.linkedin.com/in/aditisharma8",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAm0lEQVR4AWP4__8_RRhMyLfs3sNQvOk_KRikB24ATNB2yhEQJtoQuAEwzVAAYtPVAMJe4Cjf8l-0bsd_RkIGQAGc_ej9t_-TDt_7_-vPXzD_6Yfv_-2nHSXWAAT49P33_z9__4HZl559JM2Aqm3XwXyXGcfA_H___pFmgFj9DjCfp3IrTIgkA5ADbbAbQA6mKDPp9x7YBTOAIgwAVba5DGceMlQAAAAASUVORK5CYII.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://au.linkedin.com/in/aditisharma8&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fau.linkedin.com%2Fin%2Faditisharma8",
+              "source": "LinkedIn · Aditi Sharma",
+              "read_more_link": "https://au.linkedin.com/in/aditisharma8#:~:text=Result%20oriented%20banking%20and%20finance,and%20reporting%2C%20budgeting%20%26%20forecasting%2C"
+            },
+            {
+              "position": 2,
+              "title": "Adi Sharma - Executive Manager - Identity Engineering",
+              "link": "https://au.linkedin.com/in/aditisharma",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://au.linkedin.com/in/aditisharma&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECCEQAQ",
+              "displayed_link": "2.2K+ followers",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAm0lEQVR4AWP4__8_RRhMyLfs3sNQvOk_KRikB24ATNB2yhEQJtoQuAEwzVAAYtPVAMJe4Cjf8l-0bsd_RkIGQAGc_ej9t_-TDt_7_-vPXzD_6Yfv_-2nHSXWAAT49P33_z9__4HZl559JM2Aqm3XwXyXGcfA_H___pFmgFj9DjCfp3IrTIgkA5ADbbAbQA6mKDPp9x7YBTOAIgwAVba5DGceMlQAAAAASUVORK5CYII.png",
+              "snippet": "Experience ; Executive Manager - Identity Engineering. Commonwealth Bank. Oct 2024 - Present 1 year 9 months ; Chief Engineer. Macquarie Group. Nov 2022 - Aug ...",
+              "snippet_highlighted_words": [
+                "Executive Manager - Identity Engineering. Commonwealth Bank"
+              ],
+              "rich_snippet": {
+                "top": {
+                  "extensions": [
+                    "Melbourne, Victoria, Australia",
+                    "Executive Manager - Identity Engineering",
+                    "Commonwealth Bank"
+                  ]
+                }
+              },
+              "about_this_result": {
+                "source": {
+                  "description": "Experience ; Executive Manager - Identity Engineering. Commonwealth Bank. Oct 2024 - Present 1 year 9 months ; Chief Engineer. Macquarie Group. Nov 2022 - Aug ...",
+                  "source_info_link": "https://au.linkedin.com/in/aditisharma",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAm0lEQVR4AWP4__8_RRhMyLfs3sNQvOk_KRikB24ATNB2yhEQJtoQuAEwzVAAYtPVAMJe4Cjf8l-0bsd_RkIGQAGc_ej9t_-TDt_7_-vPXzD_6Yfv_-2nHSXWAAT49P33_z9__4HZl559JM2Aqm3XwXyXGcfA_H___pFmgFj9DjCfp3IrTIgkA5ADbbAbQA6mKDPp9x7YBTOAIgwAVba5DGceMlQAAAAASUVORK5CYII.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://au.linkedin.com/in/aditisharma&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fau.linkedin.com%2Fin%2Faditisharma",
+              "source": "LinkedIn · Adi Sharma",
+              "read_more_link": "https://au.linkedin.com/in/aditisharma#:~:text=Experience&text=Executive%20Manager%20%2D%20Identity%20Engineering,Present%201%20year%209%20months&text=Chief%20Engineer,Aug%202024"
+            },
+            {
+              "position": 3,
+              "title": "Aditi Sharma",
+              "link": "https://www.lw.com/en/people/aditi-sharma",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.lw.com/en/people/aditi-sharma&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECBoQAQ",
+              "displayed_link": "https://www.lw.com › people › aditi-sharma",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAaVBMVEWuAACtAACyHByzISGwEhK0JiavCwuxFxeoAAD57e3____ZoqKpAADr0NC5PDz04-PUmZnmxMTt1NT__PzAWlrQi4v25-e8SkrapqbfsrK3NTWiAAD68_PIcnLQhobw2trju7vId3fpy8uHdPVeAAAAq0lEQVR4AWKgHIwCQPFjYYBADATBWzTMb3B36L9HXPI0wLmL9BCFWeQazVZEu3kzO82uQs1m55NMPSqZu8hg9aGlT3LAUB4xticw9Yx5ilpSM0gLYJlGrPyTXEN_yJjBZstO9WSkLbPMHrqg36RHrCYkWD5WlknLM3ocNoebXLmWPO5O_TVQpSWwU5GcAwzT448pEEXSq_P5nHeucpaUz0dHAb6DQvbTif_BFZ7ACp9sQicwAAAAAElFTkSuQmCC.png",
+              "snippet": "Aditi Sharma is an associate in the New York office of Latham & Watkins. Aditi is a member of the Finance Department and the Banking & Private Credit Practice.",
+              "snippet_highlighted_words": [
+                "an associate in the New York office of Latham & Watkins"
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "Aditi Sharma is an associate in the New York office of Latham & Watkins. Aditi is a member of the Finance Department and the Banking & Private Credit Practice.",
+                  "source_info_link": "https://www.lw.com/en/people/aditi-sharma",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAaVBMVEWuAACtAACyHByzISGwEhK0JiavCwuxFxeoAAD57e3____ZoqKpAADr0NC5PDz04-PUmZnmxMTt1NT__PzAWlrQi4v25-e8SkrapqbfsrK3NTWiAAD68_PIcnLQhobw2trju7vId3fpy8uHdPVeAAAAq0lEQVR4AWKgHIwCQPFjYYBADATBWzTMb3B36L9HXPI0wLmL9BCFWeQazVZEu3kzO82uQs1m55NMPSqZu8hg9aGlT3LAUB4xticw9Yx5ilpSM0gLYJlGrPyTXEN_yJjBZstO9WSkLbPMHrqg36RHrCYkWD5WlknLM3ocNoebXLmWPO5O_TVQpSWwU5GcAwzT448pEEXSq_P5nHeucpaUz0dHAb6DQvbTif_BFZ7ACp9sQicwAAAAAElFTkSuQmCC.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://www.lw.com/en/people/aditi-sharma&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fwww.lw.com%2Fen%2Fpeople%2Faditi-sharma",
+              "source": "Latham & Watkins LLP",
+              "read_more_link": "https://www.lw.com/en/people/aditi-sharma#:~:text=Aditi%20Sharma%20is%20an%20associate,Banking%20%26%20Private%20Credit%20Practice."
+            },
+            {
+              "position": 4,
+              "title": "Adi Sharma - Executive Manager - Identity Engineering at ...",
+              "link": "https://theorg.com/org/commonwealth-bank-of-australia/org-chart/adi-sharma",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://theorg.com/org/commonwealth-bank-of-australia/org-chart/adi-sharma&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECB8QAQ",
+              "displayed_link": "https://theorg.com › org › org-chart › adi-sharma",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAQlBMVEUAAAAzMzFBQj_HycH___u_wLn5-_Lq7OT8_vVoaWWeoJra3NS5urSTlY9ZWlb___3___iHiIP19-5vcGzi5NsjIyLDVPAuAAAAaUlEQVR4AeXLtQHAMAwEQDMz7D9qYjdhrP2N4CQwYiBC8BYxIfgWKWP0FrkQ_GItVYs21hrdO7k150VLkO0q9M67DUaREmMhA5ADYymJeMBSeP_kpVzgOv1CH8Q6ieC3WBFC69SGCkbKDEkiBPvGzu73AAAAAElFTkSuQmCC.png",
+              "snippet": "Currently serving as Executive Manager of Identity Engineering at Commonwealth Bank since October 2024, Adi previously held the position of Chief Engineer at ...",
+              "snippet_highlighted_words": [
+                "Executive Manager of Identity Engineering at Commonwealth Bank"
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "Currently serving as Executive Manager of Identity Engineering at Commonwealth Bank since October 2024, Adi previously held the position of Chief Engineer at ...",
+                  "source_info_link": "https://theorg.com/org/commonwealth-bank-of-australia/org-chart/adi-sharma",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAQlBMVEUAAAAzMzFBQj_HycH___u_wLn5-_Lq7OT8_vVoaWWeoJra3NS5urSTlY9ZWlb___3___iHiIP19-5vcGzi5NsjIyLDVPAuAAAAaUlEQVR4AeXLtQHAMAwEQDMz7D9qYjdhrP2N4CQwYiBC8BYxIfgWKWP0FrkQ_GItVYs21hrdO7k150VLkO0q9M67DUaREmMhA5ADYymJeMBSeP_kpVzgOv1CH8Q6ieC3WBFC69SGCkbKDEkiBPvGzu73AAAAAElFTkSuQmCC.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://theorg.com/org/commonwealth-bank-of-australia/org-chart/adi-sharma&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Ftheorg.com%2Forg%2Fcommonwealth-bank-of-australia%2Forg-chart%2Fadi-sharma",
+              "source": "The Org",
+              "read_more_link": "https://theorg.com/org/commonwealth-bank-of-australia/org-chart/adi-sharma#:~:text=Currently%20serving%20as%20Executive%20Manager,position%20of%20Chief%20Engineer%20at"
+            },
+            {
+              "position": 5,
+              "title": "Aditi Sharma",
+              "link": "https://www.bridgespan.org/team-members/aditi-sharma",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.bridgespan.org/team-members/aditi-sharma&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECBkQAQ",
+              "displayed_link": "https://www.bridgespan.org › team-members › aditi-shar...",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACdUlEQVR4AdWXA6wdQRSGt47aqLFqM6ht2w0b1ObsrW3btm0jqm332ti33Wym57w7s9lcPO7uSzf5cjY7-L-ZuRQopYUQoTWpKrQWJ0J9APWt8RCsj6ASqNW1XBZeER5eAF6bEy5-BL5Dzk-ov4F7QOXMbLbyCwYHvgc-A18BexruQHZ1AbfdoJV_ZIF8lSmDW07Y5q02ZLU73o_YhDyc-XskIdCeHYXa2OyNx2z2fvnjU9tM3uFlz18LOVsZDyP6c7TnBgx_8cWuuAMRnQDAzgr5yvjOtoeHGAIGU7hSCditAMOTBYizQARaT9oRhGdxLBJwcwFXIEJbTdoeNUGAYHUWaTsdccO9F_DzIJMEiBNXh_DAnrP2R-EVrwXkRMDLcKfAm4CfEUykZJfZwVFrz0oZfxU6YP7hXAkEjUDccUXyhyXMKBiB43dfKRjwXwpIcQg-DMch1gtwEmUSJyo7eFm4_shNUXMFkomW7jU_PGzVacnlj9C5-27KVgtII9acUcKxDIrX3L03FNilsKUCcyCUT4L3iTt0_M7L3AqE8ahTCpToMDO3AhIIqLy9_7xDeEQsJEEAjrDlxO2yNpbflOo6R-ps26Ocuv9a3XPliZofgX4ooLWRzJqtQKPRm-VvDj_FCyYzRqCViFWGqugFWkzYpuAzRBNAK2g0RmDuQWzXkyig8uf5FOCrJPIxnUDfuQfVfAkcy14gKSA_Ar_xLPBc9AL4TA-GmiDwGwTIIkDGhzqBhAnMECAyZuMO1AZeWi4AmZjN_5xW72Lb-xp_sZotABlKZ3HPS8zU_h0jCw7cqhuV5CVw7zRRwAkZi2bvuVGb5_4D8kOcXpejGwkAAAAASUVORK5CYII.png",
+              "snippet": "Aditi Sharma is a principal in Bridgespan's Africa office, based in Nairobi. She has more than 10 years of experience supporting clients spanning nonprofits ...",
+              "snippet_highlighted_words": [
+                "is a principal in Bridgespan's Africa office"
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "Aditi Sharma is a principal in Bridgespan's Africa office, based in Nairobi. She has more than 10 years of experience supporting clients spanning nonprofits ...",
+                  "source_info_link": "https://www.bridgespan.org/team-members/aditi-sharma",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACdUlEQVR4AdWXA6wdQRSGt47aqLFqM6ht2w0b1ObsrW3btm0jqm332ti33Wym57w7s9lcPO7uSzf5cjY7-L-ZuRQopYUQoTWpKrQWJ0J9APWt8RCsj6ASqNW1XBZeER5eAF6bEy5-BL5Dzk-ov4F7QOXMbLbyCwYHvgc-A18BexruQHZ1AbfdoJV_ZIF8lSmDW07Y5q02ZLU73o_YhDyc-XskIdCeHYXa2OyNx2z2fvnjU9tM3uFlz18LOVsZDyP6c7TnBgx_8cWuuAMRnQDAzgr5yvjOtoeHGAIGU7hSCditAMOTBYizQARaT9oRhGdxLBJwcwFXIEJbTdoeNUGAYHUWaTsdccO9F_DzIJMEiBNXh_DAnrP2R-EVrwXkRMDLcKfAm4CfEUykZJfZwVFrz0oZfxU6YP7hXAkEjUDccUXyhyXMKBiB43dfKRjwXwpIcQg-DMch1gtwEmUSJyo7eFm4_shNUXMFkomW7jU_PGzVacnlj9C5-27KVgtII9acUcKxDIrX3L03FNilsKUCcyCUT4L3iTt0_M7L3AqE8ahTCpToMDO3AhIIqLy9_7xDeEQsJEEAjrDlxO2yNpbflOo6R-ps26Ocuv9a3XPliZofgX4ooLWRzJqtQKPRm-VvDj_FCyYzRqCViFWGqugFWkzYpuAzRBNAK2g0RmDuQWzXkyig8uf5FOCrJPIxnUDfuQfVfAkcy14gKSA_Ar_xLPBc9AL4TA-GmiDwGwTIIkDGhzqBhAnMECAyZuMO1AZeWi4AmZjN_5xW72Lb-xp_sZotABlKZ3HPS8zU_h0jCw7cqhuV5CVw7zRRwAkZi2bvuVGb5_4D8kOcXpejGwkAAAAASUVORK5CYII.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://www.bridgespan.org/team-members/aditi-sharma&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fwww.bridgespan.org%2Fteam-members%2Faditi-sharma",
+              "source": "Bridgespan",
+              "read_more_link": "https://www.bridgespan.org/team-members/aditi-sharma#:~:text=Aditi%20Sharma%20is%20a%20principal,experience%20supporting%20clients%20spanning%20nonprofits"
+            },
+            {
+              "position": 6,
+              "title": "Aditi Sharma",
+              "link": "https://www.stimson.org/ppl/aditi-sharma/",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.stimson.org/ppl/aditi-sharma/&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECEQQAQ",
+              "displayed_link": "https://www.stimson.org › ppl › aditi-sharma",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAYFBMVEVHcEzO6NXO6NXO6NXO6NXO6NXO6NXO6NXO6NXO6NXP6dbS7NjU7trO6NXX8d2xyr2JoJxziYlccni30MIkO1AAASykvbIAGTyYsKjD3czJ49JJXmg4Tl261MWBl5UUL0f5m8ZLAAAADnRSTlMAM4W_6v5eGdxE____P2UCANQAAAFSSURBVHgBXFKHooQgDHPro31FQJbz___yWm5f3MY2SbF6oW7aru-7tqmrXwxMPNENX9Q49V-Yxjf31wsUICKoO_3_xQHp2VgzO4JPdpR71Iu_YwlUqu-dRQ-Cj0vKa3Zp87b0norP0jTGnfUY3D7uhRXPkkFp7wP0d0COhiQRZy_PTGbVP1nnnTzUVSOF3PZVySBrkS9N1TJ39Dh71uzfjaVvK5KQoEfj94NAPAmbsIjKrYFekbZ-P4M7RFtRkjZComW7CEhHSMHJ1_1e7JW2JmE4iVsCyInCYu9ZWibDTjgvAUnK-elaS9dWoijwTCQf7XmaLXoDoKVrU4aAp88A67l7H7d5RWHKEERUqStqYjFkiOoqXFcGXwbmTU-SEoDcWUqH15Lp6L1NLmc97-8leyw2ZOvvuAL1gvHjN1GYZ2vtqW-DJRN8CQxf0iScqPFmBwBqGBvR3yPXrgAAAABJRU5ErkJggg.png",
+              "snippet": "Aditi Sharma is a Research Associate with the 38 North program at the Stimson Center, focusing primarily on the usage of satellite imagery as a monitoring tool.",
+              "snippet_highlighted_words": [
+                "is"
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "Aditi Sharma is a Research Associate with the 38 North program at the Stimson Center, focusing primarily on the usage of satellite imagery as a monitoring tool.",
+                  "source_info_link": "https://www.stimson.org/ppl/aditi-sharma/",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAYFBMVEVHcEzO6NXO6NXO6NXO6NXO6NXO6NXO6NXO6NXO6NXP6dbS7NjU7trO6NXX8d2xyr2JoJxziYlccni30MIkO1AAASykvbIAGTyYsKjD3czJ49JJXmg4Tl261MWBl5UUL0f5m8ZLAAAADnRSTlMAM4W_6v5eGdxE____P2UCANQAAAFSSURBVHgBXFKHooQgDHPro31FQJbz___yWm5f3MY2SbF6oW7aru-7tqmrXwxMPNENX9Q49V-Yxjf31wsUICKoO_3_xQHp2VgzO4JPdpR71Iu_YwlUqu-dRQ-Cj0vKa3Zp87b0norP0jTGnfUY3D7uhRXPkkFp7wP0d0COhiQRZy_PTGbVP1nnnTzUVSOF3PZVySBrkS9N1TJ39Dh71uzfjaVvK5KQoEfj94NAPAmbsIjKrYFekbZ-P4M7RFtRkjZComW7CEhHSMHJ1_1e7JW2JmE4iVsCyInCYu9ZWibDTjgvAUnK-elaS9dWoijwTCQf7XmaLXoDoKVrU4aAp88A67l7H7d5RWHKEERUqStqYjFkiOoqXFcGXwbmTU-SEoDcWUqH15Lp6L1NLmc97-8leyw2ZOvvuAL1gvHjN1GYZ2vtqW-DJRN8CQxf0iScqPFmBwBqGBvR3yPXrgAAAABJRU5ErkJggg.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://www.stimson.org/ppl/aditi-sharma/&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fwww.stimson.org%2Fppl%2Faditi-sharma%2F",
+              "source": "Stimson Center",
+              "read_more_link": "https://www.stimson.org/ppl/aditi-sharma/#:~:text=Aditi%20Sharma%20is%20a%20Research,to%2038%20North's%20geospatial%20products."
+            },
+            {
+              "position": 7,
+              "title": "Meet Aditi Sharma",
+              "link": "https://voyagela.com/interview/meet-aditi-sharma-of-greater-new-york-area/",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://voyagela.com/interview/meet-aditi-sharma-of-greater-new-york-area/&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECEAQAQ",
+              "displayed_link": "https://voyagela.com › interview › meet-aditi-sharma-of...",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAyklEQVR4Ac3PIQyDMBCF4ecVchI1NVOJn09Q81jUdIMX1ZNIvKiZWlIvK5tgSUgQ6BNvaZplAUBvnzp3_8NfqpqoRFToeN9zICk8RYQdonqiCIcrEpxaN3F0GlFpg9BZha8He3xYOiwozg2SMlBjyfOJxMiYY6lmSLWXF7sMS-dBDKJqkAorWUenUpovsFbKVKfNBhvKsQVQpd9rhuGKzPKZY-vWs8ZlnDV2nCwtNL3CnmaeEdhhl_I0jMm7WiE9DtwGSoMjD2fxa29oXGsPga92YwAAAABJRU5ErkJggg.png",
+              "date": "Nov 13, 2023",
+              "snippet": "I worked on programs like the Commonwealth Games, designing street furniture and signages. That's when I got interested in pursuing ...",
+              "snippet_highlighted_words": [
+                "Commonwealth"
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "I worked on programs like the Commonwealth Games, designing street furniture and signages. That's when I got interested in pursuing ...",
+                  "source_info_link": "https://voyagela.com/interview/meet-aditi-sharma-of-greater-new-york-area/",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAyklEQVR4Ac3PIQyDMBCF4ecVchI1NVOJn09Q81jUdIMX1ZNIvKiZWlIvK5tgSUgQ6BNvaZplAUBvnzp3_8NfqpqoRFToeN9zICk8RYQdonqiCIcrEpxaN3F0GlFpg9BZha8He3xYOiwozg2SMlBjyfOJxMiYY6lmSLWXF7sMS-dBDKJqkAorWUenUpovsFbKVKfNBhvKsQVQpd9rhuGKzPKZY-vWs8ZlnDV2nCwtNL3CnmaeEdhhl_I0jMm7WiE9DtwGSoMjD2fxa29oXGsPga92YwAAAABJRU5ErkJggg.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://voyagela.com/interview/meet-aditi-sharma-of-greater-new-york-area/&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fvoyagela.com%2Finterview%2Fmeet-aditi-sharma-of-greater-new-york-area%2F",
+              "source": "Voyage LA Magazine",
+              "read_more_link": "https://voyagela.com/interview/meet-aditi-sharma-of-greater-new-york-area/#:~:text=I%20worked%20on%20programs%20like,I%20got%20interested%20in%20pursuing"
+            },
+            {
+              "position": 8,
+              "title": "Brave UX: Aditi Sharma - Building Inclusive Enterprise Design ...",
+              "link": "https://www.youtube.com/watch?v=rwYF50Shq-s",
+              "displayed_link": "470+ views · 4 years ago",
+              "thumbnail": "https://serpapi.com/searches/6a352cd0895d9028aca18e2e/images/8Co0gpPyFsX2nLn5AKlM1tO3o5Oa6SoeLFUjeDNGU08.jpeg",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAh0lEQVR4AWP4__8_RXgwGMBgzA_EU4H4DBA_B-JPQPwfB_4EVXMGqocfZMAMkCSZeCrIgKsUGHAFZMAXrJIZbf__u-cQMuATA07JCcv-g8H2o___a4bgNASvAXDw4-f__xYJWNVR7AKKw4AqsTCdknQAS4nTgPgsEL8glBKhas5A9fAPfGYCADVteZOv2-CaAAAAAElFTkSuQmCC.png",
+              "snippet": "Aditi Sharma openly discusses being woman of colour in banking , how she's building a diverse and inclusive design culture , and why she's ...",
+              "duration": "1:08:12",
+              "key_moments": [
+                {
+                  "time": "00:00",
+                  "title": "Start",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=0",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZ0gHtfH0EjXOQvxGEjxAS-R5AOLw2zfnRk16nO2RkyQ&s"
+                },
+                {
+                  "time": "00:34",
+                  "title": "Aditi’s introduction",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=34",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4pkEfAqcwTZC8ZuqCEBgvkXMx_6UwWwYNmTCs0bmxqA&s"
+                },
+                {
+                  "time": "02:22",
+                  "title": "What was it like growing up in India as the youngest of three girls?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=142",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWfhE9-rv-L_NOcYJ6JIDCujHmbYM9SvfpNU2SFY4p6A&s"
+                },
+                {
+                  "time": "05:59",
+                  "title": "Do you carry the weight of patriarchally imposed stigma on your shoulders?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=359",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDMc2rtxunxxvEDqhtb9_44QP1e3gVJRfHHakgv0VCKw&s"
+                },
+                {
+                  "time": "11:35",
+                  "title": "Can you see yourself returning to live and work in India?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=695",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLs64mDfBCtl-JXkUIJd7lfo9uzysTDgNYg6DTfil47Q&s"
+                },
+                {
+                  "time": "17:11",
+                  "title": "Was it personally risky to help bring female condoms to women in India?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=1031",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTef0zUdTvzNBoa_ZZ1pgQ13SKnnWxX_17ffIPZtOyXOw&s"
+                },
+                {
+                  "time": "22:13",
+                  "title": "When did you decide that you could help to right some of the wrongs in the world?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=1333",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_JRyS1WbXga3hXKcno9cS9ataqM8rLY1-INH9xN15ag&s"
+                },
+                {
+                  "time": "29:11",
+                  "title": "Is it fair to characterise the banking industry as a boys’ club?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=1751",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbP_aAslA3YN9twYK98fq7CPLX6hCAgpHFt2KDW3XoeQ&s"
+                },
+                {
+                  "time": "37:44",
+                  "title": "How do you feel about only 9% of banking’s C-Suite being people of colour?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=2264",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7M0Q4kQNHZuZbmdA0TWayCYH1rKB2ZlBOHlezp-H00g&s"
+                },
+                {
+                  "time": "43:47",
+                  "title": "Why isn’t design seen as the most important or credible voice in the room?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=2627",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGzHELKWNBPT8HUFywzQAYTPvTVVO7NkjfTJCQi9xLQA&s"
+                },
+                {
+                  "time": "51:27",
+                  "title": "How did you join the dots of design practice and leadership so quickly?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=3087",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRheK3yjPGxzZdS9HYJnSKRxkbAEpRGMzQ0PJq6BRc-2g&s"
+                },
+                {
+                  "time": "57:22",
+                  "title": "What do aspiring design leaders need to know about design leadership?",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=3442",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUXlkI50x_ypp9sFSCYFGG2dBIWDyGJKfdAIEyKBAASw&s"
+                },
+                {
+                  "time": "01:06:32",
+                  "title": "Closing out the show - Thanks, Aditi!",
+                  "link": "https://www.youtube.com/watch?v=rwYF50Shq-s&t=3992",
+                  "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLse0BDd3I0HrXf5svs-7oCktf7uGlydqdPK4jqgTY-w&s"
+                }
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "Aditi Sharma openly discusses being woman of colour in banking , how she's building a diverse and inclusive design culture , and why she's ...",
+                  "source_info_link": "https://www.youtube.com/watch?v=rwYF50Shq-s",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8_9hAAAAh0lEQVR4AWP4__8_RXgwGMBgzA_EU4H4DBA_B-JPQPwfB_4EVXMGqocfZMAMkCSZeCrIgKsUGHAFZMAXrJIZbf__u-cQMuATA07JCcv-g8H2o___a4bgNASvAXDw4-f__xYJWNVR7AKKw4AqsTCdknQAS4nTgPgsEL8glBKhas5A9fAPfGYCADVteZOv2-CaAAAAAElFTkSuQmCC.png"
+                }
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://www.youtube.com/watch?v=rwYF50Shq-s&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DrwYF50Shq-s",
+              "video_link": "https://encrypted-vtbn0.gstatic.com/video?q=tbn:ANd9GcSQoMkkBSYFub9S-0tyH3aAv4KGjOWdTUXpOQ",
+              "source": "YouTube · The Space InBetween"
+            },
+            {
+              "position": 9,
+              "title": "ADITI SHARMA - ATS Resume",
+              "link": "https://v5.atsresume.in/p/aditisharma-ca22/",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://v5.atsresume.in/p/aditisharma-ca22/&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECDsQAQ",
+              "displayed_link": "https://v5.atsresume.in › aditisharma-ca22",
+              "snippet": "Experienced in issue tracking, access management, UAT, gap analysis, and documentation for integrated financial systems. Proficient in coordinating cross- ...",
+              "snippet_highlighted_words": [
+                "Experienced in issue tracking, access management, UAT, gap analysis, and documentation"
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "Experienced in issue tracking, access management, UAT, gap analysis, and documentation for integrated financial systems. Proficient in coordinating cross- ...",
+                  "source_info_link": "https://v5.atsresume.in/p/aditisharma-ca22/"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://v5.atsresume.in/p/aditisharma-ca22/&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Fv5.atsresume.in%2Fp%2Faditisharma-ca22%2F",
+              "source": "atsresume.in",
+              "read_more_link": "https://v5.atsresume.in/p/aditisharma-ca22/#:~:text=Experienced%20in%20issue%20tracking%2C%20access,MIS%20reporting%20and%20data%2Ddriven%20insights."
+            },
+            {
+              "position": 10,
+              "title": "Aditi Sharma Email & Phone Number | Bank of America ...",
+              "link": "https://rocketreach.co/aditi-sharma-email_125137843",
+              "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://rocketreach.co/aditi-sharma-email_125137843&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0QFnoECD4QAQ",
+              "displayed_link": "https://rocketreach.co › aditi-sharma-email_125137843",
+              "favicon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAhFBMVEX____k6PGhrcxddawvU5odRpOtuNN4jLhlfLFLZqMnTJYtT5c5V5s6WJuGl8DHz-Hv8ve3wdgxUZj2-PskSpWPnsOcqsq7xNoiSJRvhLQqUp5vdYr69uwtVJ2Sgmb2tQD_zVJCXJPBm0L_vQBrbn3mrh3_ugCdiF7GnDD_5aX_tgD93JAMs9pFAAABLUlEQVR4AaySRZbEMAxEZQqjqZkxmfvfbwxK47ZrZ_-nEsIPRCjjQnBGCZAkZVn-gtKirGqnqhCsaTuA7MF6Lj1yTOa9Ai82MaoD8cxEBF06xekKGe8BFLUKoE0wH69RcuaeiRAWoCERpjIQLrUNPnNBQWFKUlTBcWExX58o6EWMpKVnpYEXqbygsWYfKJGhjKyiL_f5GvXKejcQDl7Cu-Zs0XQTm1XOTESI7XOC-ax0DCF2uVytMV8cF38WVG22u_2aeGcrgxN7tLI5HE-n3WrTuPciWJV0GsLyfDldT9ulXDhXHjc3jU_fro4dN85LmbhWOS2F3E_X6-lycL95g3vlBFDDeL1ez5vwGfvSPTz0N55uy_opTeFFwx33HceBcd8HVhYp-R--pEk5AABMFRcLH_2jrwAAAABJRU5ErkJggg.png",
+              "snippet": "Aditi Sharma, based in Mumbai, MH, IN, is currently a Team Leader at Bank of America. Aditi Sharma brings experience from previous roles at Forage and The ...",
+              "snippet_highlighted_words": [
+                "currently a Team Leader at Bank of America"
+              ],
+              "about_this_result": {
+                "source": {
+                  "description": "Aditi Sharma, based in Mumbai, MH, IN, is currently a Team Leader at Bank of America. Aditi Sharma brings experience from previous roles at Forage and The ...",
+                  "source_info_link": "https://rocketreach.co/aditi-sharma-email_125137843",
+                  "icon": "https://serpapi.com/images/i/iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y-mAAAAhFBMVEX____k6PGhrcxddawvU5odRpOtuNN4jLhlfLFLZqMnTJYtT5c5V5s6WJuGl8DHz-Hv8ve3wdgxUZj2-PskSpWPnsOcqsq7xNoiSJRvhLQqUp5vdYr69uwtVJ2Sgmb2tQD_zVJCXJPBm0L_vQBrbn3mrh3_ugCdiF7GnDD_5aX_tgD93JAMs9pFAAABLUlEQVR4AaySRZbEMAxEZQqjqZkxmfvfbwxK47ZrZ_-nEsIPRCjjQnBGCZAkZVn-gtKirGqnqhCsaTuA7MF6Lj1yTOa9Ai82MaoD8cxEBF06xekKGe8BFLUKoE0wH69RcuaeiRAWoCERpjIQLrUNPnNBQWFKUlTBcWExX58o6EWMpKVnpYEXqbygsWYfKJGhjKyiL_f5GvXKejcQDl7Cu-Zs0XQTm1XOTESI7XOC-ax0DCF2uVytMV8cF38WVG22u_2aeGcrgxN7tLI5HE-n3WrTuPciWJV0GsLyfDldT9ulXDhXHjc3jU_fro4dN85LmbhWOS2F3E_X6-lycL95g3vlBFDDeL1ez5vwGfvSPTz0N55uy_opTeFFwx33HceBcd8HVhYp-R--pEk5AABMFRcLH_2jrwAAAABJRU5ErkJggg.png"
+                },
+                "languages": [
+                  "en"
+                ],
+                "regions": [
+                  "US"
+                ]
+              },
+              "about_page_link": "https://www.google.com/search?q=About+https://rocketreach.co/aditi-sharma-email_125137843&tbm=ilp",
+              "about_page_serpapi_link": "https://serpapi.com/search.json?engine=google_about_this_result&google_domain=google.com&q=About+https%3A%2F%2Frocketreach.co%2Faditi-sharma-email_125137843",
+              "source": "RocketReach",
+              "read_more_link": "https://rocketreach.co/aditi-sharma-email_125137843#:~:text=Aditi%20Sharma%2C%20based%20in%20Mumbai%2C,Forage%20and%20The%20Sparks%20Foundation."
+            }
+          ],
+          "pagination": {
+            "current": 1,
+            "next": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=10&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8NMDegQINBAW",
+            "other_pages": {
+              "2": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=10&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAE",
+              "3": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=20&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAG",
+              "4": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=30&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAI",
+              "5": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=40&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAK",
+              "6": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=50&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAM",
+              "7": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=60&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAO",
+              "8": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=70&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAQ",
+              "9": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=80&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAS",
+              "10": "https://www.google.com/search?q=Aditi+Sharma+Commonwealth+Bank&sca_esv=8712aa7b0522de6e&ei=0Cw1apngItHNkPIP1Oqs6QM&start=90&sa=N&sstk=AU9db-DrGDdOXn8-uqx3cHkovkmrQaC7JgU2HmI6z9NHqkl_AuKGSzDuWBoR1dq8nzKJmxen9tPRTr9TJxymELBi5QXt6fQdFcCaCg&ved=2ahUKEwiZiMaYnpOVAxXRJkQIHVQ1Kz0Q8tMDegQINBAU"
+            }
+          },
+          "serpapi_pagination": {
+            "current": 1,
+            "next_link": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=10",
+            "next": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=10",
+            "other_pages": {
+              "2": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=10",
+              "3": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=20",
+              "4": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=30",
+              "5": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=40",
+              "6": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=50",
+              "7": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=60",
+              "8": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=70",
+              "9": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=80",
+              "10": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&q=Aditi+Sharma+Commonwealth+Bank&start=90"
+            }
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read source sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read source sheet": {
+      "main": [
+        [
+          {
+            "node": "Set run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log duplicate": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Shape output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate input": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log skipped record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate": {
+      "main": [
+        [
+          {
+            "node": "is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality filter": {
+      "main": [
+        [
+          {
+            "node": "Save to output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log unusable record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape output": {
+      "main": [
+        [
+          {
+            "node": "Quality filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log unusable record": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to output": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log: success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log: success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f9792f53-4c89-43a4-93c4-43576cef9608",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "wonEki1qSr4Vrb6K",
+  "tags": []
+}

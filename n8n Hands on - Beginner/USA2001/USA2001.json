@@ -1,0 +1,691 @@
+{
+  "name": "USA2001",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        64
+      ],
+      "id": "f9d8b9f4-e66b-425e-9fa3-2bf64f79d968",
+      "name": "Manual trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM source_contacts WHERE processed = false ORDER BY id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        64
+      ],
+      "id": "8c261ef8-b1b7-4acd-82a5-62b292cb7067",
+      "name": "Read source contacts",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "41960a81-bc2a-4199-90aa-a99f9c6e3623",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "f9f0f564-c950-4c27-ad13-a17e4676ed88",
+              "name": "record_key",
+              "value": "={{ $json.linkedin_url.trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "5c13f00d-b591-498e-b2ec-2b899c16af4e",
+              "name": "processed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "6c8d230c-97f3-422c-a3d4-07b9a5d64e3b",
+              "name": "duplicate",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        64
+      ],
+      "id": "631254b4-ca7c-4135-acec-59f8db018921",
+      "name": "Set run ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "55990b90-e216-457c-a4f5-9a2737b574ba",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "f69ff1b5-f02a-45b5-9fb9-22fe9e9d659d",
+              "leftValue": "={{ $json.linkedin_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        64
+      ],
+      "id": "eb820395-ce61-464e-8f07-c139212e7e89",
+      "name": "Validate required fields"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -32
+      ],
+      "id": "ee03218b-8422-4b03-8e2f-4bb113c90d30",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO run_log (run_id, source_key, record_key, status, retry_count, error_message)\nVALUES (\n  '{{ $json.run_id }}',\n  '{{ $json.id }}',\n  '{{ $json.record_key }}',\n  'duplicate',\n  0,\n  NULL\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1568,
+        -224
+      ],
+      "id": "1f1b87ab-bf38-48dd-963f-28ee4aeb0711",
+      "name": "Log duplicate",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO run_log (run_id, source_key, record_key, status, retry_count, error_message)\nVALUES (\n  '{{ $json.run_id }}',\n  '{{ $json.id }}',\n  '{{ $json.record_key }}',\n  'skipped',\n  0,\n  'Required contact information is missing'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        160
+      ],
+      "id": "51e71383-ffb3-4462-919d-c75cf2a36efc",
+      "name": "Log skipped record",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        -416
+      ],
+      "id": "f531effd-7b49-465a-91e4-4c6064fda1c8",
+      "name": "Wait",
+      "webhookId": "f38f1180-fffc-4842-acc4-287dbc0ddaec"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "=google"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.name }} {{ $json.company }} linkedin"
+            },
+            {
+              "name": "num",
+              "value": "3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1792,
+        -416
+      ],
+      "id": "9d3a620d-d59b-4de9-b60b-12fe690f83fc",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "serpApi": {
+          "id": "NshLcSUtTUnLX8O7",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3e699e30-506c-4315-968d-d34a617239cb",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        -368
+      ],
+      "id": "5df00aee-f085-4fdb-bf48-95300cbd80a1",
+      "name": "is duplicate?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "950506aa-946e-4a4c-8221-014cc4a3d9c8",
+              "name": "run_id",
+              "value": "={{ $('Wait').item.json.run_id }}",
+              "type": "string"
+            },
+            {
+              "id": "89a95f94-1bae-452e-bfac-a404733e27c3",
+              "name": "id",
+              "value": "={{ $('Wait').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "d5391e05-8d26-4573-b6be-61321bbb5c0e",
+              "name": "record_key",
+              "value": "={{ $('Wait').item.json.record_key }}",
+              "type": "string"
+            },
+            {
+              "id": "9664ab55-9eda-49a5-8c70-7630f97a4d37",
+              "name": "name",
+              "value": "={{ $('Wait').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "b90e9e29-5465-4b8d-be2e-5d176df715f7",
+              "name": "email",
+              "value": "={{ $('Wait').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "8c51702f-75e9-4601-8b13-c915eaa65243",
+              "name": "linkedin_url",
+              "value": "={{ $('Wait').item.json.linkedin_url }}",
+              "type": "string"
+            },
+            {
+              "id": "6406404d-874c-4a30-ab14-ea09cf084e26",
+              "name": "company",
+              "value": "={{ $('Wait').item.json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "090db50c-b400-47f2-9b23-a6f5c003b151",
+              "name": "enriched_title",
+              "value": "={{ $json.organic_results && $json.organic_results[0] ? $json.organic_results[0].title : 'Not found' }}",
+              "type": "string"
+            },
+            {
+              "id": "78dc06ad-153c-4e5c-93cb-48efb0107b50",
+              "name": "enriched_snippet",
+              "value": "={{ $json.organic_results && $json.organic_results[0] ? $json.organic_results[0].snippet : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "dc123ae7-477c-4065-a2d2-8d2e0c4d73a8",
+              "name": "enriched_link",
+              "value": "={{ $json.organic_results && $json.organic_results[0] ? $json.organic_results[0].link : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "036f15d2-8be8-40f6-ac7b-173dd6ec2735",
+              "name": "processed_at",
+              "value": "={{ $('Wait').item.json.processed_at }}",
+              "type": "string"
+            },
+            {
+              "id": "d9e32fbc-55a8-4fa6-8494-c32803c7b08d",
+              "name": "enriched_location",
+              "value": "={{ $json.search_information && $json.search_information.results_for ? $json.search_information.results_for : 'Not found' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2016,
+        -416
+      ],
+      "id": "3aee45c7-7a2d-4802-8a1c-c199bbc13693",
+      "name": "Shape and merge data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "56994ef0-0407-4cbd-9acc-1f25e289fdfd",
+              "leftValue": "={{ $json.record_key }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2ec1eddd-18c6-425a-af2c-91161ad78a44",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "eea53ab6-7946-4ebe-91d3-2a3813ba17d1",
+              "leftValue": "={{ $json.linkedin_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2240,
+        -416
+      ],
+      "id": "368b98ce-0da4-4b14-9867-b9caa8e9636a",
+      "name": "Quality filter"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO run_log (run_id, source_key, record_key, status, retry_count, error_message)\nVALUES (\n  '{{ $json.run_id }}',\n  '{{ $json.id }}',\n  '{{ $json.record_key }}',\n  'skipped',\n  0,\n  'Failed quality filter: profile enrichment returned insufficient data'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2464,
+        -320
+      ],
+      "id": "541a4ad3-a6a2-4bf8-af92-a626d433af25",
+      "name": "Log unusable record",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO clean_output (run_id, record_key, name, email, linkedin_url, company, enriched_title, enriched_location)\nVALUES (\n  '{{ $json.run_id }}',\n  '{{ $json.record_key }}',\n  '{{ $json.name }}',\n  '{{ $json.email }}',\n  '{{ $json.linkedin_url }}',\n  '{{ $json.company }}',\n  '{{ $json.enriched_title }}',\n  '{{ $json.enriched_location }}'\n)\nON CONFLICT (record_key) DO NOTHING;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2464,
+        -512
+      ],
+      "id": "45e66daf-a79c-4382-9c4c-5c4a9a7e250a",
+      "name": "Save clean output",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO run_log (run_id, source_key, record_key, status, retry_count, error_message)\nVALUES (\n  '{{ $('Quality filter').item.json.run_id }}',\n  '{{ $('Quality filter').item.json.id }}',\n  '{{ $('Quality filter').item.json.record_key }}',\n  'success',\n  0,\n  NULL\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2688,
+        -288
+      ],
+      "id": "537c2eb3-7741-4a64-a022-9a2929bbc693",
+      "name": "Log success",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Access n8n's internal workflow memory cache\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.processedLinks) {\n  staticData.processedLinks = {};\n}\n\n// 2. Safely extract and normalize the linkedin_url\nconst linkedinUrl = $input.item.json.linkedin_url \n  ? String($input.item.json.linkedin_url).trim().toLowerCase() \n  : null;\n\nlet isDuplicate = false;\n\n// 3. Process only if a valid LinkedIn URL exists\nif (linkedinUrl) {\n  // Check if we've seen this URL before in internal storage\n  if (staticData.processedLinks[linkedinUrl] !== undefined) {\n    isDuplicate = true;\n    // Update the storage: increment the duplicate encounter count\n    staticData.processedLinks[linkedinUrl] += 1;\n  } else {\n    // First time seeing it: initialize the counter to 1\n    staticData.processedLinks[linkedinUrl] = 1;\n  }\n}\n\n// 4. Return the item payload with the duplicate flag and the historical count\nreturn [{\n  json: {\n    ...$input.item.json,\n    duplicate: isDuplicate,\n    internal_seen_count: linkedinUrl ? staticData.processedLinks[linkedinUrl] : 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        -32
+      ],
+      "id": "b247edf0-ef7e-4fad-ae61-695366a7b049",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual trigger": {
+      "main": [
+        [
+          {
+            "node": "Read source contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read source contacts": {
+      "main": [
+        [
+          {
+            "node": "Set run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate required fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate required fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log skipped record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log duplicate": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Shape and merge data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape and merge data": {
+      "main": [
+        [
+          {
+            "node": "Quality filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality filter": {
+      "main": [
+        [
+          {
+            "node": "Save clean output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log unusable record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log unusable record": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save clean output": {
+      "main": [
+        [
+          {
+            "node": "Log success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "is duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0d17f2b1-3751-4292-943f-dabd711de004",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "HJ2QaZerDrnkXFrW",
+  "tags": []
+}

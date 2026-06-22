@@ -1,0 +1,2152 @@
+{
+  "name": "AR001",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    account_id,\n    contact_name,\n    linkedin_url,\n    phone,\n    amount_due,\n    due_date,\n    status,\n    call_id\nFROM public.ar_contacts\nWHERE status = 'pending'\n  AND due_date < CURRENT_DATE\nORDER BY due_date ASC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        208
+      ],
+      "id": "95aa99c1-0441-4bb6-a7be-f34b362df8c3",
+      "name": "Get AR records",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        32,
+        208
+      ],
+      "id": "f59f8df8-4899-4db1-bb5b-96ab975d8db9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO run_log (run_id, account_id, stage, result, reason)\nVALUES (\n  '{{ $json.run_id }}', \n  '{{ $json.account_id }}', \n  'validation', \n  'skipped', \n  'Missing required phone number field for automation'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        928,
+        256
+      ],
+      "id": "e654634d-09cd-45f6-b09f-76c8987bb62c",
+      "name": "Log skipped record",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        928,
+        64
+      ],
+      "id": "289a23e4-a266-47ea-8b8f-dfbe7a3bb57c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO run_log (run_id, account_id, stage, result, reason)\nVALUES (\n  '{{ $json.run_id }}', \n  '{{ $json.account_id }}', \n  'Duplicate', \n  'skipped', \n  'Duplicate entity matching an identical record already processed in this batch'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1600,
+        -32
+      ],
+      "id": "18709a08-09e6-4177-b1e9-50d261e22c82",
+      "name": "Log duplicate",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node: \"Check duplicate\"\n// Run once per item\n\nconst staticData = $getWorkflowStaticData('global');\n\nif (!staticData.processedKeys) {\n  staticData.processedKeys = {};\n}\n\n// Use the already-normalized field from the previous \"Normalize keys\" Set node.\n// Fallback to raw linkedin_url + lowercase/trim here too, in case this node\n// ever runs standalone without the normalize step before it.\nconst rawKey = $input.item.json.linkedin_url_normalized || $input.item.json.linkedin_url || '';\n\nconst recordKey = String(rawKey)\n  .trim()\n  .toLowerCase()\n  .replace(/\\/$/, ''); // strip trailing slash\n\n// Check if key exists — works for both boolean true (old) and object (new)\nconst isDuplicate = staticData.processedKeys[recordKey] !== undefined;\n\n// Reserve the slot immediately so a second item with the same key\n// in the same run is also caught as a duplicate\nif (!isDuplicate && recordKey) {\n  staticData.processedKeys[recordKey] = 'reserved';\n}\n\nreturn [{\n  json: {\n    ...$input.item.json,\n    normalized_key: recordKey,\n    duplicate: isDuplicate\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        -192
+      ],
+      "id": "1627ab95-a03a-4834-9b1d-9bc31add2868",
+      "name": "Check duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e8c84988-9ab0-45cb-85ad-5f53ad37de83",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1376,
+        -192
+      ],
+      "id": "5b1f631a-745f-4590-9175-c771a11d70e3",
+      "name": "If duplicate?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e29216ba-05ad-408e-93bb-b00a78041ed6",
+              "leftValue": "={{ $json.contact_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "92c3040c-5416-4e2d-9216-f2287281aaf3",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        208
+      ],
+      "id": "f46d79a0-8281-4506-921e-f34fb0ed6159",
+      "name": "Is valid?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7440019d-0851-499c-8dd5-26270a34212a",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "0f37b8c0-b323-4d2d-9a1a-2df407cea78c",
+              "name": "record_key",
+              "value": "={{ $json.linkedin_url.trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "50da88b4-4537-404a-a757-06b7eb902510",
+              "name": "processed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        208
+      ],
+      "id": "61f6d578-ba8f-47c0-bed4-a2b242571319",
+      "name": "Set run ID"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO run_log (run_id, account_id, stage, result, reason)\nVALUES (\n  '{{ $json.run_id }}', \n  '{{ $json.account_id }}', \n  'execution', \n  'success', \n  'Pipeline completed successfully: record routed and logged'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2496,
+        -144
+      ],
+      "id": "dbfab462-01ae-4559-9052-1b91d9123cca",
+      "name": "Log success",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.retellai.com/v2/get-call/{{ $json.call_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1600,
+        -320
+      ],
+      "id": "851898c4-0394-4d40-ae1d-331bb5a2181b",
+      "name": "Get call transcript",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "f73319FASX0YHaoc",
+          "name": "Retell AI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "877438c5-8fb1-4a33-9c38-b8fdd0f3acb7",
+              "name": "run_id",
+              "value": "={{ $('Set run ID').item.json.run_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3303e8f0-5b03-44ca-b285-3a821e1ef3aa",
+              "name": "account_id",
+              "value": "={{ $json.account_id }}",
+              "type": "string"
+            },
+            {
+              "id": "61c4b692-e909-44c4-af2f-ec53770e414d",
+              "name": "contact_name",
+              "value": "={{ $json.contact_name }}",
+              "type": "string"
+            },
+            {
+              "id": "6b5cf783-22da-4d53-99a8-ad41d9f2215e",
+              "name": "linkedin_url_normalized",
+              "value": "={{ $json.normalized_key }}",
+              "type": "string"
+            },
+            {
+              "id": "2724d494-1883-45c0-9bc8-ed8a4833d014",
+              "name": "phone",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "99cf0b02-2957-4f3c-a6fb-668b48fad72c",
+              "name": "amount_due",
+              "value": "={{ $json.amount_due }}",
+              "type": "string"
+            },
+            {
+              "id": "f1b526f3-8869-4306-ac89-d1002aedd700",
+              "name": "due_date",
+              "value": "={{ $json.due_date }}",
+              "type": "string"
+            },
+            {
+              "id": "3eaf2fc4-193a-4a58-9d05-f62623161ed7",
+              "name": "retell_call_id",
+              "value": "={{ $json.call_id }}",
+              "type": "string"
+            },
+            {
+              "id": "bffdd2f8-8dec-4bc3-bad2-3189dba5d763",
+              "name": "call_status",
+              "value": "={{ $json.call_status }}",
+              "type": "string"
+            },
+            {
+              "id": "1eae4436-1bdf-4030-8ca5-944fefd780c0",
+              "name": "call_successful",
+              "value": "={{ $json.call_analysis?.call_successful ?? false }}",
+              "type": "string"
+            },
+            {
+              "id": "ba475be2-dbe2-46c1-ba09-6fbf889dbf35",
+              "name": "call_summary",
+              "value": "={{ $json.call_analysis?.call_summary ?? 'Not found' }}",
+              "type": "string"
+            },
+            {
+              "id": "a6e998b8-0219-47eb-8bbe-84242667d103",
+              "name": "user_sentiment",
+              "value": "={{ $json.call_analysis?.user_sentiment ?? 'Not found' }}",
+              "type": "string"
+            },
+            {
+              "id": "83e95faa-0933-4ba5-9568-937f61bca30a",
+              "name": "transcript",
+              "value": "={{ $json.transcript ?? 'Not found' }}",
+              "type": "string"
+            },
+            {
+              "id": "96335e61-f1ce-4d76-8137-9c108c0bfc17",
+              "name": "recording_url",
+              "value": "={{ $json.recording_url ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "6f4f2c95-7ad4-46eb-9d59-d2525b0a2eb2",
+              "name": "call_duration_seconds",
+              "value": "={{ Math.round(($json.duration_ms ?? 0) / 1000) }}",
+              "type": "string"
+            },
+            {
+              "id": "9c506a5f-1336-4480-8a85-4323f3fbb408",
+              "name": "processed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2048,
+        -272
+      ],
+      "id": "084d33f0-cc6d-4888-a892-083aa952ba0a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1824,
+        -272
+      ],
+      "id": "c0935df5-d6a5-4702-87b2-ac1bddaed0b2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO clean_output (\n  run_id, \n  account_id, \n  contact_name, \n  linkedin_url_normalized, \n  phone, \n  amount_due, \n  due_date, \n  call_status, \n  call_summary\n)\nVALUES (\n  '{{ $json.run_id }}', \n  '{{ $json.account_id }}', \n  '{{ $json.contact_name }}', \n  '{{ $json.linkedin_url_normalized }}', \n  '{{ $json.phone }}', \n  {{ $json.amount_due }}, \n  '{{ $json.due_date }}', \n  '{{ $json.call_status }}', \n  '{{ $json.call_summary.replace(/'/g, \"''\") }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2272,
+        -272
+      ],
+      "id": "ce7d2c1e-0516-4811-bffc-bc98aabaa0ee",
+      "name": "Save clean output",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Get call transcript": [
+      {
+        "json": {
+          "call_id": "call_c574b17bd80710a2d25008c6180",
+          "call_type": "web_call",
+          "agent_id": "agent_14a317c9748df09d756a752796",
+          "agent_version": 0,
+          "agent_name": "AR Collections Caller",
+          "call_status": "ended",
+          "start_timestamp": 1781757081181,
+          "end_timestamp": 1781757149896,
+          "duration_ms": 68715,
+          "transcript": "User: Hello. \nAgent: Hi, is this Asha Mehta? This is an automated virtual assistant calling about your overdue invoice for 15,000.00 that was due on May 20, 2026. When do you think you’ll be able to make that payment?\nUser: Yes. This is Samita. I think I will be able to make the payment in two batches. One eight thousand and one seven thousand by over next week. \nAgent: Okay, thanks for letting me know. Just to confirm, you’re planning to pay 8,000 first and then 7,000, both within next week, correct?\nUser: Yes \nAgent: Thanks for confirming, Samita. I’ve noted that you’ll pay 8,000 and then 7,000 over next week toward the overdue invoice of 15,000 that was due on May 20, 2026. If anything changes, please contact our billing team. Have a good day.\n",
+          "transcript_object": [
+            {
+              "role": "user",
+              "content": "Hello. ",
+              "words": [
+                {
+                  "word": "Hello. ",
+                  "start": 5.4949997,
+                  "end": 5.8149999999999995
+                }
+              ]
+            },
+            {
+              "role": "agent",
+              "content": "Hi, is this Asha Mehta? This is an automated virtual assistant calling about your overdue invoice for 15,000.00 that was due on May 20, 2026. When do you think you’ll be able to make that payment?",
+              "words": [
+                {
+                  "word": "Hi, ",
+                  "start": 7.199,
+                  "end": 7.599
+                },
+                {
+                  "word": "is ",
+                  "start": 7.599,
+                  "end": 7.999
+                },
+                {
+                  "word": "this ",
+                  "start": 7.999,
+                  "end": 8.399
+                },
+                {
+                  "word": "Asha ",
+                  "start": 8.399,
+                  "end": 8.799
+                },
+                {
+                  "word": "Mehta? ",
+                  "start": 8.799,
+                  "end": 9.199
+                },
+                {
+                  "word": "This ",
+                  "start": 9.199,
+                  "end": 9.599
+                },
+                {
+                  "word": "is ",
+                  "start": 9.599,
+                  "end": 9.999
+                },
+                {
+                  "word": "an ",
+                  "start": 9.999,
+                  "end": 10.399
+                },
+                {
+                  "word": "automated ",
+                  "start": 10.399,
+                  "end": 10.799
+                },
+                {
+                  "word": "virtual ",
+                  "start": 10.799,
+                  "end": 11.199
+                },
+                {
+                  "word": "assistant ",
+                  "start": 11.199,
+                  "end": 11.599
+                },
+                {
+                  "word": "calling ",
+                  "start": 11.599,
+                  "end": 11.999
+                },
+                {
+                  "word": "about ",
+                  "start": 11.999,
+                  "end": 12.399
+                },
+                {
+                  "word": "your ",
+                  "start": 12.399,
+                  "end": 12.799
+                },
+                {
+                  "word": "overdue ",
+                  "start": 12.799,
+                  "end": 13.199
+                },
+                {
+                  "word": "invoice ",
+                  "start": 13.199,
+                  "end": 13.599
+                },
+                {
+                  "word": "for ",
+                  "start": 13.599,
+                  "end": 13.999
+                },
+                {
+                  "word": "15,000.00 ",
+                  "start": 13.999,
+                  "end": 14.399
+                },
+                {
+                  "word": "that ",
+                  "start": 14.399,
+                  "end": 14.799
+                },
+                {
+                  "word": "was ",
+                  "start": 14.799,
+                  "end": 15.199
+                },
+                {
+                  "word": "due ",
+                  "start": 15.199,
+                  "end": 15.599
+                },
+                {
+                  "word": "on ",
+                  "start": 15.599,
+                  "end": 15.999
+                },
+                {
+                  "word": "May ",
+                  "start": 15.999,
+                  "end": 16.399
+                },
+                {
+                  "word": "20, ",
+                  "start": 16.399,
+                  "end": 16.799
+                },
+                {
+                  "word": "2026. ",
+                  "start": 16.799,
+                  "end": 17.199
+                },
+                {
+                  "word": "When ",
+                  "start": 17.199,
+                  "end": 17.599
+                },
+                {
+                  "word": "do ",
+                  "start": 17.599,
+                  "end": 17.999
+                },
+                {
+                  "word": "you ",
+                  "start": 17.999,
+                  "end": 18.399
+                },
+                {
+                  "word": "think ",
+                  "start": 18.399,
+                  "end": 18.799
+                },
+                {
+                  "word": "you’ll ",
+                  "start": 18.799,
+                  "end": 19.199
+                },
+                {
+                  "word": "be ",
+                  "start": 19.199,
+                  "end": 19.599
+                },
+                {
+                  "word": "able ",
+                  "start": 19.599,
+                  "end": 19.999
+                },
+                {
+                  "word": "to ",
+                  "start": 19.999,
+                  "end": 20.399
+                },
+                {
+                  "word": "make ",
+                  "start": 20.399,
+                  "end": 20.799
+                },
+                {
+                  "word": "that ",
+                  "start": 20.799,
+                  "end": 21.199
+                },
+                {
+                  "word": "payment?",
+                  "start": 21.199,
+                  "end": 21.599
+                }
+              ],
+              "metadata": {
+                "response_id": 1
+              }
+            },
+            {
+              "role": "user",
+              "content": "Yes. This is Samita. I think I will be able to make the payment in two batches. One eight thousand and one seven thousand by over next week. ",
+              "words": [
+                {
+                  "word": "Yes. ",
+                  "start": 23.545,
+                  "end": 24.025000000000002
+                },
+                {
+                  "word": "This ",
+                  "start": 24.025000000000002,
+                  "end": 24.265
+                },
+                {
+                  "word": "is ",
+                  "start": 24.265,
+                  "end": 24.425
+                },
+                {
+                  "word": "Samita. ",
+                  "start": 25.225,
+                  "end": 25.785002000000002
+                },
+                {
+                  "word": "I ",
+                  "start": 26.935000000000002,
+                  "end": 27.254999
+                },
+                {
+                  "word": "think ",
+                  "start": 27.254999,
+                  "end": 27.494999
+                },
+                {
+                  "word": "I ",
+                  "start": 27.494999,
+                  "end": 27.735000000000003
+                },
+                {
+                  "word": "will ",
+                  "start": 27.735000000000003,
+                  "end": 28.055000000000003
+                },
+                {
+                  "word": "be ",
+                  "start": 28.055000000000003,
+                  "end": 28.295
+                },
+                {
+                  "word": "able ",
+                  "start": 28.295,
+                  "end": 28.615000000000002
+                },
+                {
+                  "word": "to ",
+                  "start": 28.615000000000002,
+                  "end": 28.775000000000002
+                },
+                {
+                  "word": "make ",
+                  "start": 28.775000000000002,
+                  "end": 29.015
+                },
+                {
+                  "word": "the ",
+                  "start": 29.145000000000003,
+                  "end": 29.545
+                },
+                {
+                  "word": "payment ",
+                  "start": 29.545,
+                  "end": 30.105
+                },
+                {
+                  "word": "in ",
+                  "start": 30.105,
+                  "end": 30.345001
+                },
+                {
+                  "word": "two ",
+                  "start": 30.345001,
+                  "end": 30.665000000000003
+                },
+                {
+                  "word": "batches. ",
+                  "start": 30.665000000000003,
+                  "end": 31.545
+                },
+                {
+                  "word": "One ",
+                  "start": 31.545,
+                  "end": 31.785
+                },
+                {
+                  "word": "eight ",
+                  "start": 31.785,
+                  "end": 32.105001
+                },
+                {
+                  "word": "thousand ",
+                  "start": 32.165,
+                  "end": 32.725
+                },
+                {
+                  "word": "and ",
+                  "start": 32.725,
+                  "end": 33.044999999999995
+                },
+                {
+                  "word": "one ",
+                  "start": 33.044999999999995,
+                  "end": 33.364999999999995
+                },
+                {
+                  "word": "seven ",
+                  "start": 33.364999999999995,
+                  "end": 33.684999999999995
+                },
+                {
+                  "word": "thousand ",
+                  "start": 33.684999999999995,
+                  "end": 34.405
+                },
+                {
+                  "word": "by ",
+                  "start": 34.725,
+                  "end": 35.285
+                },
+                {
+                  "word": "over ",
+                  "start": 35.285,
+                  "end": 35.684999999999995
+                },
+                {
+                  "word": "next ",
+                  "start": 35.684999999999995,
+                  "end": 36.085
+                },
+                {
+                  "word": "week. ",
+                  "start": 36.085,
+                  "end": 36.245
+                }
+              ]
+            },
+            {
+              "role": "agent",
+              "content": "Okay, thanks for letting me know. Just to confirm, you’re planning to pay 8,000 first and then 7,000, both within next week, correct?",
+              "words": [
+                {
+                  "word": "Okay, ",
+                  "start": 37.465,
+                  "end": 37.865
+                },
+                {
+                  "word": "thanks ",
+                  "start": 37.865,
+                  "end": 38.265
+                },
+                {
+                  "word": "for ",
+                  "start": 38.265,
+                  "end": 38.665
+                },
+                {
+                  "word": "letting ",
+                  "start": 38.665,
+                  "end": 39.065
+                },
+                {
+                  "word": "me ",
+                  "start": 39.065,
+                  "end": 39.465
+                },
+                {
+                  "word": "know.",
+                  "start": 39.465,
+                  "end": 39.865
+                },
+                {
+                  "word": " Just ",
+                  "start": 39.865,
+                  "end": 40.265
+                },
+                {
+                  "word": "to ",
+                  "start": 40.265,
+                  "end": 40.665
+                },
+                {
+                  "word": "confirm, ",
+                  "start": 40.665,
+                  "end": 41.065
+                },
+                {
+                  "word": "you’re ",
+                  "start": 41.065,
+                  "end": 41.465
+                },
+                {
+                  "word": "planning ",
+                  "start": 41.465,
+                  "end": 41.865
+                },
+                {
+                  "word": "to ",
+                  "start": 41.865,
+                  "end": 42.265
+                },
+                {
+                  "word": "pay ",
+                  "start": 42.265,
+                  "end": 42.665
+                },
+                {
+                  "word": "8,000 ",
+                  "start": 42.665,
+                  "end": 43.065
+                },
+                {
+                  "word": "first ",
+                  "start": 43.065,
+                  "end": 43.465
+                },
+                {
+                  "word": "and ",
+                  "start": 43.465,
+                  "end": 43.865
+                },
+                {
+                  "word": "then ",
+                  "start": 43.865,
+                  "end": 44.265
+                },
+                {
+                  "word": "7,000, ",
+                  "start": 44.265,
+                  "end": 44.665
+                },
+                {
+                  "word": "both ",
+                  "start": 44.665,
+                  "end": 45.065
+                },
+                {
+                  "word": "within ",
+                  "start": 45.065,
+                  "end": 45.465
+                },
+                {
+                  "word": "next ",
+                  "start": 45.465,
+                  "end": 45.865
+                },
+                {
+                  "word": "week, ",
+                  "start": 45.865,
+                  "end": 46.265
+                },
+                {
+                  "word": "correct?",
+                  "start": 46.265,
+                  "end": 46.665
+                }
+              ],
+              "metadata": {
+                "response_id": 6
+              }
+            },
+            {
+              "role": "user",
+              "content": "Yes ",
+              "words": [
+                {
+                  "word": "Yes ",
+                  "start": 48.385,
+                  "end": 48.785
+                }
+              ]
+            },
+            {
+              "role": "agent",
+              "content": "Thanks for confirming, Samita. I’ve noted that you’ll pay 8,000 and then 7,000 over next week toward the overdue invoice of 15,000 that was due on May 20, 2026. If anything changes, please contact our billing team. Have a good day.",
+              "words": [
+                {
+                  "word": "Thanks ",
+                  "start": 52.192,
+                  "end": 52.592
+                },
+                {
+                  "word": "for ",
+                  "start": 52.592,
+                  "end": 52.992
+                },
+                {
+                  "word": "confirming, ",
+                  "start": 52.992,
+                  "end": 53.392
+                },
+                {
+                  "word": "Samita. ",
+                  "start": 53.392,
+                  "end": 53.792
+                },
+                {
+                  "word": "I’ve ",
+                  "start": 53.792,
+                  "end": 54.192
+                },
+                {
+                  "word": "noted ",
+                  "start": 54.192,
+                  "end": 54.592
+                },
+                {
+                  "word": "that ",
+                  "start": 54.592,
+                  "end": 54.992
+                },
+                {
+                  "word": "you’ll ",
+                  "start": 54.992,
+                  "end": 55.392
+                },
+                {
+                  "word": "pay ",
+                  "start": 55.392,
+                  "end": 55.792
+                },
+                {
+                  "word": "8,000 ",
+                  "start": 55.792,
+                  "end": 56.192
+                },
+                {
+                  "word": "and ",
+                  "start": 56.192,
+                  "end": 56.592
+                },
+                {
+                  "word": "then ",
+                  "start": 56.592,
+                  "end": 56.992
+                },
+                {
+                  "word": "7,000 ",
+                  "start": 56.992,
+                  "end": 57.392
+                },
+                {
+                  "word": "over ",
+                  "start": 57.392,
+                  "end": 57.792
+                },
+                {
+                  "word": "next ",
+                  "start": 57.792,
+                  "end": 58.192
+                },
+                {
+                  "word": "week ",
+                  "start": 58.192,
+                  "end": 58.592
+                },
+                {
+                  "word": "toward ",
+                  "start": 58.592,
+                  "end": 58.992
+                },
+                {
+                  "word": "the ",
+                  "start": 58.992,
+                  "end": 59.392
+                },
+                {
+                  "word": "overdue ",
+                  "start": 59.392,
+                  "end": 59.792
+                },
+                {
+                  "word": "invoice ",
+                  "start": 59.792,
+                  "end": 60.192
+                },
+                {
+                  "word": "of ",
+                  "start": 60.192,
+                  "end": 60.592
+                },
+                {
+                  "word": "15,000 ",
+                  "start": 60.592,
+                  "end": 60.992
+                },
+                {
+                  "word": "that ",
+                  "start": 60.992,
+                  "end": 61.392
+                },
+                {
+                  "word": "was ",
+                  "start": 61.392,
+                  "end": 61.792
+                },
+                {
+                  "word": "due ",
+                  "start": 61.792,
+                  "end": 62.192
+                },
+                {
+                  "word": "on ",
+                  "start": 62.192,
+                  "end": 62.592
+                },
+                {
+                  "word": "May ",
+                  "start": 62.592,
+                  "end": 62.992
+                },
+                {
+                  "word": "20, ",
+                  "start": 62.992,
+                  "end": 63.392
+                },
+                {
+                  "word": "2026. ",
+                  "start": 63.392,
+                  "end": 63.792
+                },
+                {
+                  "word": "If ",
+                  "start": 63.792,
+                  "end": 64.192
+                },
+                {
+                  "word": "anything ",
+                  "start": 64.192,
+                  "end": 64.592
+                },
+                {
+                  "word": "changes, ",
+                  "start": 64.592,
+                  "end": 64.992
+                },
+                {
+                  "word": "please ",
+                  "start": 64.992,
+                  "end": 65.392
+                },
+                {
+                  "word": "contact ",
+                  "start": 65.392,
+                  "end": 65.792
+                },
+                {
+                  "word": "our ",
+                  "start": 65.792,
+                  "end": 66.192
+                },
+                {
+                  "word": "billing ",
+                  "start": 66.192,
+                  "end": 66.592
+                },
+                {
+                  "word": "team. ",
+                  "start": 66.592,
+                  "end": 66.992
+                },
+                {
+                  "word": "Have ",
+                  "start": 66.992,
+                  "end": 67.392
+                },
+                {
+                  "word": "a ",
+                  "start": 67.392,
+                  "end": 67.792
+                },
+                {
+                  "word": "good ",
+                  "start": 67.792,
+                  "end": 68.192
+                },
+                {
+                  "word": "day.",
+                  "start": 68.192,
+                  "end": 68.592
+                }
+              ],
+              "metadata": {
+                "response_id": 8
+              }
+            }
+          ],
+          "transcript_with_tool_calls": [
+            {
+              "role": "user",
+              "content": "Hello. ",
+              "words": [
+                {
+                  "word": "Hello. ",
+                  "start": 5.4949997,
+                  "end": 5.8149999999999995
+                }
+              ]
+            },
+            {
+              "role": "agent",
+              "content": "Hi, is this Asha Mehta? This is an automated virtual assistant calling about your overdue invoice for 15,000.00 that was due on May 20, 2026. When do you think you’ll be able to make that payment?",
+              "words": [
+                {
+                  "word": "Hi, ",
+                  "start": 7.199,
+                  "end": 7.599
+                },
+                {
+                  "word": "is ",
+                  "start": 7.599,
+                  "end": 7.999
+                },
+                {
+                  "word": "this ",
+                  "start": 7.999,
+                  "end": 8.399
+                },
+                {
+                  "word": "Asha ",
+                  "start": 8.399,
+                  "end": 8.799
+                },
+                {
+                  "word": "Mehta? ",
+                  "start": 8.799,
+                  "end": 9.199
+                },
+                {
+                  "word": "This ",
+                  "start": 9.199,
+                  "end": 9.599
+                },
+                {
+                  "word": "is ",
+                  "start": 9.599,
+                  "end": 9.999
+                },
+                {
+                  "word": "an ",
+                  "start": 9.999,
+                  "end": 10.399
+                },
+                {
+                  "word": "automated ",
+                  "start": 10.399,
+                  "end": 10.799
+                },
+                {
+                  "word": "virtual ",
+                  "start": 10.799,
+                  "end": 11.199
+                },
+                {
+                  "word": "assistant ",
+                  "start": 11.199,
+                  "end": 11.599
+                },
+                {
+                  "word": "calling ",
+                  "start": 11.599,
+                  "end": 11.999
+                },
+                {
+                  "word": "about ",
+                  "start": 11.999,
+                  "end": 12.399
+                },
+                {
+                  "word": "your ",
+                  "start": 12.399,
+                  "end": 12.799
+                },
+                {
+                  "word": "overdue ",
+                  "start": 12.799,
+                  "end": 13.199
+                },
+                {
+                  "word": "invoice ",
+                  "start": 13.199,
+                  "end": 13.599
+                },
+                {
+                  "word": "for ",
+                  "start": 13.599,
+                  "end": 13.999
+                },
+                {
+                  "word": "15,000.00 ",
+                  "start": 13.999,
+                  "end": 14.399
+                },
+                {
+                  "word": "that ",
+                  "start": 14.399,
+                  "end": 14.799
+                },
+                {
+                  "word": "was ",
+                  "start": 14.799,
+                  "end": 15.199
+                },
+                {
+                  "word": "due ",
+                  "start": 15.199,
+                  "end": 15.599
+                },
+                {
+                  "word": "on ",
+                  "start": 15.599,
+                  "end": 15.999
+                },
+                {
+                  "word": "May ",
+                  "start": 15.999,
+                  "end": 16.399
+                },
+                {
+                  "word": "20, ",
+                  "start": 16.399,
+                  "end": 16.799
+                },
+                {
+                  "word": "2026. ",
+                  "start": 16.799,
+                  "end": 17.199
+                },
+                {
+                  "word": "When ",
+                  "start": 17.199,
+                  "end": 17.599
+                },
+                {
+                  "word": "do ",
+                  "start": 17.599,
+                  "end": 17.999
+                },
+                {
+                  "word": "you ",
+                  "start": 17.999,
+                  "end": 18.399
+                },
+                {
+                  "word": "think ",
+                  "start": 18.399,
+                  "end": 18.799
+                },
+                {
+                  "word": "you’ll ",
+                  "start": 18.799,
+                  "end": 19.199
+                },
+                {
+                  "word": "be ",
+                  "start": 19.199,
+                  "end": 19.599
+                },
+                {
+                  "word": "able ",
+                  "start": 19.599,
+                  "end": 19.999
+                },
+                {
+                  "word": "to ",
+                  "start": 19.999,
+                  "end": 20.399
+                },
+                {
+                  "word": "make ",
+                  "start": 20.399,
+                  "end": 20.799
+                },
+                {
+                  "word": "that ",
+                  "start": 20.799,
+                  "end": 21.199
+                },
+                {
+                  "word": "payment?",
+                  "start": 21.199,
+                  "end": 21.599
+                }
+              ],
+              "metadata": {
+                "response_id": 1
+              }
+            },
+            {
+              "role": "user",
+              "content": "Yes. This is Samita. I think I will be able to make the payment in two batches. One eight thousand and one seven thousand by over next week. ",
+              "words": [
+                {
+                  "word": "Yes. ",
+                  "start": 23.545,
+                  "end": 24.025000000000002
+                },
+                {
+                  "word": "This ",
+                  "start": 24.025000000000002,
+                  "end": 24.265
+                },
+                {
+                  "word": "is ",
+                  "start": 24.265,
+                  "end": 24.425
+                },
+                {
+                  "word": "Samita. ",
+                  "start": 25.225,
+                  "end": 25.785002000000002
+                },
+                {
+                  "word": "I ",
+                  "start": 26.935000000000002,
+                  "end": 27.254999
+                },
+                {
+                  "word": "think ",
+                  "start": 27.254999,
+                  "end": 27.494999
+                },
+                {
+                  "word": "I ",
+                  "start": 27.494999,
+                  "end": 27.735000000000003
+                },
+                {
+                  "word": "will ",
+                  "start": 27.735000000000003,
+                  "end": 28.055000000000003
+                },
+                {
+                  "word": "be ",
+                  "start": 28.055000000000003,
+                  "end": 28.295
+                },
+                {
+                  "word": "able ",
+                  "start": 28.295,
+                  "end": 28.615000000000002
+                },
+                {
+                  "word": "to ",
+                  "start": 28.615000000000002,
+                  "end": 28.775000000000002
+                },
+                {
+                  "word": "make ",
+                  "start": 28.775000000000002,
+                  "end": 29.015
+                },
+                {
+                  "word": "the ",
+                  "start": 29.145000000000003,
+                  "end": 29.545
+                },
+                {
+                  "word": "payment ",
+                  "start": 29.545,
+                  "end": 30.105
+                },
+                {
+                  "word": "in ",
+                  "start": 30.105,
+                  "end": 30.345001
+                },
+                {
+                  "word": "two ",
+                  "start": 30.345001,
+                  "end": 30.665000000000003
+                },
+                {
+                  "word": "batches. ",
+                  "start": 30.665000000000003,
+                  "end": 31.545
+                },
+                {
+                  "word": "One ",
+                  "start": 31.545,
+                  "end": 31.785
+                },
+                {
+                  "word": "eight ",
+                  "start": 31.785,
+                  "end": 32.105001
+                },
+                {
+                  "word": "thousand ",
+                  "start": 32.165,
+                  "end": 32.725
+                },
+                {
+                  "word": "and ",
+                  "start": 32.725,
+                  "end": 33.044999999999995
+                },
+                {
+                  "word": "one ",
+                  "start": 33.044999999999995,
+                  "end": 33.364999999999995
+                },
+                {
+                  "word": "seven ",
+                  "start": 33.364999999999995,
+                  "end": 33.684999999999995
+                },
+                {
+                  "word": "thousand ",
+                  "start": 33.684999999999995,
+                  "end": 34.405
+                },
+                {
+                  "word": "by ",
+                  "start": 34.725,
+                  "end": 35.285
+                },
+                {
+                  "word": "over ",
+                  "start": 35.285,
+                  "end": 35.684999999999995
+                },
+                {
+                  "word": "next ",
+                  "start": 35.684999999999995,
+                  "end": 36.085
+                },
+                {
+                  "word": "week. ",
+                  "start": 36.085,
+                  "end": 36.245
+                }
+              ]
+            },
+            {
+              "role": "agent",
+              "content": "Okay, thanks for letting me know. Just to confirm, you’re planning to pay 8,000 first and then 7,000, both within next week, correct?",
+              "words": [
+                {
+                  "word": "Okay, ",
+                  "start": 37.465,
+                  "end": 37.865
+                },
+                {
+                  "word": "thanks ",
+                  "start": 37.865,
+                  "end": 38.265
+                },
+                {
+                  "word": "for ",
+                  "start": 38.265,
+                  "end": 38.665
+                },
+                {
+                  "word": "letting ",
+                  "start": 38.665,
+                  "end": 39.065
+                },
+                {
+                  "word": "me ",
+                  "start": 39.065,
+                  "end": 39.465
+                },
+                {
+                  "word": "know.",
+                  "start": 39.465,
+                  "end": 39.865
+                },
+                {
+                  "word": " Just ",
+                  "start": 39.865,
+                  "end": 40.265
+                },
+                {
+                  "word": "to ",
+                  "start": 40.265,
+                  "end": 40.665
+                },
+                {
+                  "word": "confirm, ",
+                  "start": 40.665,
+                  "end": 41.065
+                },
+                {
+                  "word": "you’re ",
+                  "start": 41.065,
+                  "end": 41.465
+                },
+                {
+                  "word": "planning ",
+                  "start": 41.465,
+                  "end": 41.865
+                },
+                {
+                  "word": "to ",
+                  "start": 41.865,
+                  "end": 42.265
+                },
+                {
+                  "word": "pay ",
+                  "start": 42.265,
+                  "end": 42.665
+                },
+                {
+                  "word": "8,000 ",
+                  "start": 42.665,
+                  "end": 43.065
+                },
+                {
+                  "word": "first ",
+                  "start": 43.065,
+                  "end": 43.465
+                },
+                {
+                  "word": "and ",
+                  "start": 43.465,
+                  "end": 43.865
+                },
+                {
+                  "word": "then ",
+                  "start": 43.865,
+                  "end": 44.265
+                },
+                {
+                  "word": "7,000, ",
+                  "start": 44.265,
+                  "end": 44.665
+                },
+                {
+                  "word": "both ",
+                  "start": 44.665,
+                  "end": 45.065
+                },
+                {
+                  "word": "within ",
+                  "start": 45.065,
+                  "end": 45.465
+                },
+                {
+                  "word": "next ",
+                  "start": 45.465,
+                  "end": 45.865
+                },
+                {
+                  "word": "week, ",
+                  "start": 45.865,
+                  "end": 46.265
+                },
+                {
+                  "word": "correct?",
+                  "start": 46.265,
+                  "end": 46.665
+                }
+              ],
+              "metadata": {
+                "response_id": 6
+              }
+            },
+            {
+              "role": "user",
+              "content": "Yes ",
+              "words": [
+                {
+                  "word": "Yes ",
+                  "start": 48.385,
+                  "end": 48.785
+                }
+              ]
+            },
+            {
+              "role": "agent",
+              "content": "Thanks for confirming, Samita. I’ve noted that you’ll pay 8,000 and then 7,000 over next week toward the overdue invoice of 15,000 that was due on May 20, 2026. If anything changes, please contact our billing team. Have a good day.",
+              "words": [
+                {
+                  "word": "Thanks ",
+                  "start": 52.192,
+                  "end": 52.592
+                },
+                {
+                  "word": "for ",
+                  "start": 52.592,
+                  "end": 52.992
+                },
+                {
+                  "word": "confirming, ",
+                  "start": 52.992,
+                  "end": 53.392
+                },
+                {
+                  "word": "Samita. ",
+                  "start": 53.392,
+                  "end": 53.792
+                },
+                {
+                  "word": "I’ve ",
+                  "start": 53.792,
+                  "end": 54.192
+                },
+                {
+                  "word": "noted ",
+                  "start": 54.192,
+                  "end": 54.592
+                },
+                {
+                  "word": "that ",
+                  "start": 54.592,
+                  "end": 54.992
+                },
+                {
+                  "word": "you’ll ",
+                  "start": 54.992,
+                  "end": 55.392
+                },
+                {
+                  "word": "pay ",
+                  "start": 55.392,
+                  "end": 55.792
+                },
+                {
+                  "word": "8,000 ",
+                  "start": 55.792,
+                  "end": 56.192
+                },
+                {
+                  "word": "and ",
+                  "start": 56.192,
+                  "end": 56.592
+                },
+                {
+                  "word": "then ",
+                  "start": 56.592,
+                  "end": 56.992
+                },
+                {
+                  "word": "7,000 ",
+                  "start": 56.992,
+                  "end": 57.392
+                },
+                {
+                  "word": "over ",
+                  "start": 57.392,
+                  "end": 57.792
+                },
+                {
+                  "word": "next ",
+                  "start": 57.792,
+                  "end": 58.192
+                },
+                {
+                  "word": "week ",
+                  "start": 58.192,
+                  "end": 58.592
+                },
+                {
+                  "word": "toward ",
+                  "start": 58.592,
+                  "end": 58.992
+                },
+                {
+                  "word": "the ",
+                  "start": 58.992,
+                  "end": 59.392
+                },
+                {
+                  "word": "overdue ",
+                  "start": 59.392,
+                  "end": 59.792
+                },
+                {
+                  "word": "invoice ",
+                  "start": 59.792,
+                  "end": 60.192
+                },
+                {
+                  "word": "of ",
+                  "start": 60.192,
+                  "end": 60.592
+                },
+                {
+                  "word": "15,000 ",
+                  "start": 60.592,
+                  "end": 60.992
+                },
+                {
+                  "word": "that ",
+                  "start": 60.992,
+                  "end": 61.392
+                },
+                {
+                  "word": "was ",
+                  "start": 61.392,
+                  "end": 61.792
+                },
+                {
+                  "word": "due ",
+                  "start": 61.792,
+                  "end": 62.192
+                },
+                {
+                  "word": "on ",
+                  "start": 62.192,
+                  "end": 62.592
+                },
+                {
+                  "word": "May ",
+                  "start": 62.592,
+                  "end": 62.992
+                },
+                {
+                  "word": "20, ",
+                  "start": 62.992,
+                  "end": 63.392
+                },
+                {
+                  "word": "2026. ",
+                  "start": 63.392,
+                  "end": 63.792
+                },
+                {
+                  "word": "If ",
+                  "start": 63.792,
+                  "end": 64.192
+                },
+                {
+                  "word": "anything ",
+                  "start": 64.192,
+                  "end": 64.592
+                },
+                {
+                  "word": "changes, ",
+                  "start": 64.592,
+                  "end": 64.992
+                },
+                {
+                  "word": "please ",
+                  "start": 64.992,
+                  "end": 65.392
+                },
+                {
+                  "word": "contact ",
+                  "start": 65.392,
+                  "end": 65.792
+                },
+                {
+                  "word": "our ",
+                  "start": 65.792,
+                  "end": 66.192
+                },
+                {
+                  "word": "billing ",
+                  "start": 66.192,
+                  "end": 66.592
+                },
+                {
+                  "word": "team. ",
+                  "start": 66.592,
+                  "end": 66.992
+                },
+                {
+                  "word": "Have ",
+                  "start": 66.992,
+                  "end": 67.392
+                },
+                {
+                  "word": "a ",
+                  "start": 67.392,
+                  "end": 67.792
+                },
+                {
+                  "word": "good ",
+                  "start": 67.792,
+                  "end": 68.192
+                },
+                {
+                  "word": "day.",
+                  "start": 68.192,
+                  "end": 68.592
+                }
+              ],
+              "metadata": {
+                "response_id": 8
+              }
+            },
+            {
+              "role": "tool_call_invocation",
+              "tool_call_id": "236ac34dd43bc88a",
+              "name": "end_call",
+              "arguments": "{\"execution_message\":\"Thanks for confirming, Samita. I’ve noted that you’ll pay 8,000 and then 7,000 over next week toward the overdue invoice of 15,000 that was due on May 20, 2026. If anything changes, please contact our billing team. Have a good day.\"}",
+              "time_sec": 68.711,
+              "type": "end_call"
+            }
+          ],
+          "recording_url": "https://dxc03zgurdly9.cloudfront.net/9f5defd8e2b743b4cf0ba5e793517c64d3eb35ee592e75eae2269ede457ac02d/recording.wav",
+          "recording_multi_channel_url": "https://dxc03zgurdly9.cloudfront.net/9f5defd8e2b743b4cf0ba5e793517c64d3eb35ee592e75eae2269ede457ac02d/recording_multichannel.wav",
+          "public_log_url": "https://dxc03zgurdly9.cloudfront.net/9f5defd8e2b743b4cf0ba5e793517c64d3eb35ee592e75eae2269ede457ac02d/public.log",
+          "disconnection_reason": "agent_hangup",
+          "latency": {
+            "llm": {
+              "p99": 1328.5799999999997,
+              "min": 582,
+              "max": 1359,
+              "p90": 1054.8000000000002,
+              "num": 7,
+              "values": [
+                852,
+                582,
+                656,
+                799,
+                836,
+                691,
+                1359
+              ],
+              "p50": 799,
+              "sum": 5775,
+              "p95": 1206.8999999999996
+            },
+            "e2e": {
+              "p99": 2347.3380859375,
+              "min": 1220,
+              "max": 2366.998046875,
+              "p90": 2170.3984375,
+              "num": 3,
+              "values": [
+                1384,
+                1220,
+                2366.998046875
+              ],
+              "p50": 1384,
+              "sum": 4970.998046875,
+              "p95": 2268.6982421875
+            },
+            "tts": {
+              "p99": 1332.0999999999995,
+              "min": 247,
+              "max": 1396,
+              "p90": 757.0000000000005,
+              "num": 7,
+              "values": [
+                252,
+                247,
+                299,
+                285,
+                273,
+                331,
+                1396
+              ],
+              "p50": 285,
+              "sum": 3083,
+              "p95": 1076.499999999999
+            },
+            "asr": {
+              "p99": 262.15999999999997,
+              "min": 0,
+              "max": 264,
+              "p90": 245.59999999999997,
+              "num": 3,
+              "values": [
+                264,
+                172,
+                0
+              ],
+              "p50": 172,
+              "sum": 436,
+              "p95": 254.8
+            }
+          },
+          "call_cost": {
+            "total_duration_unit_price": 0.1833334,
+            "product_costs": [
+              {
+                "unit_price": 0.0916667,
+                "product": "retell_voice_engine",
+                "cost": 6.3250023
+              },
+              {
+                "unit_price": 0.025,
+                "product": "platform_tts",
+                "cost": 1.725
+              },
+              {
+                "unit_price": 0.0666667,
+                "product": "gpt_5_1",
+                "cost": 4.6000023
+              },
+              {
+                "unit_price": 1.5,
+                "product": "gpt_4_1_text_testing",
+                "cost": 1.5
+              }
+            ],
+            "combined_cost": 14.1500046,
+            "total_duration_seconds": 69
+          },
+          "call_analysis": {
+            "in_voicemail": false,
+            "call_summary": "The agent contacted Samita regarding an overdue invoice of $15,000. Samita confirmed she will pay the amount in two batches—$8,000 and $7,000—over the next week. The agent acknowledged the payment plan and ended the call.",
+            "user_sentiment": "Neutral",
+            "custom_analysis_data": {},
+            "call_successful": true
+          },
+          "data_storage_setting": "everything",
+          "opt_in_signed_url": false,
+          "llm_token_usage": {
+            "values": [
+              1130,
+              1165,
+              1200,
+              1214,
+              1222,
+              1226,
+              1240,
+              1274
+            ],
+            "average": 1208.875,
+            "num_requests": 8
+          },
+          "tool_calls": [
+            {
+              "name": "end_call",
+              "start_time_sec": 68.711,
+              "tool_call_id": "236ac34dd43bc88a",
+              "type": "end_call"
+            }
+          ],
+          "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6IndlYl9jYWxsX2M1NzRiMTdiZDgwNzEwYTJkMjUwMDhjNjE4MCJ9LCJpc3MiOiJBUElVTXg5OFUyR2MyanIiLCJleHAiOjE3ODE3NTc2ODAsIm5iZiI6MTc4MTc1NzA4MCwic3ViIjoiY2xpZW50In0.YyxSKM_-VgdkODCXo0WUTcpH3kpBMEgfgvEVxq5nGHY"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Get AR records": {
+      "main": [
+        [
+          {
+            "node": "Set run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get AR records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log duplicate": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate": {
+      "main": [
+        [
+          {
+            "node": "If duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Get call transcript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is valid?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log skipped record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run ID": {
+      "main": [
+        [
+          {
+            "node": "Is valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get call transcript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Save clean output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save clean output": {
+      "main": [
+        [
+          {
+            "node": "Log success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "47e022f7-a307-434d-91bd-529787bd1a1e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "qnwXkmRQ7vJxokvO",
+  "tags": []
+}
