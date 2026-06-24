@@ -1,0 +1,1102 @@
+{
+  "name": "SRP2004",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        352
+      ],
+      "id": "4e39bb7c-651d-47cd-912f-2c42f76c4789",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7440019d-0851-499c-8dd5-26270a34212a",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "0f37b8c0-b323-4d2d-9a1a-2df407cea78c",
+              "name": "record_key",
+              "value": "={{ $json.Topic.trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "d99650f0-8b2a-459a-b40a-2e1c1f721a34",
+              "name": "duplicate",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        352
+      ],
+      "id": "fcd3f347-fd1f-4582-ad7c-dd0917b90f30",
+      "name": "Set run ID"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.inputSheetName }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        352
+      ],
+      "id": "cdb323d6-85a3-4ac9-a87a-dced13070663",
+      "name": "Read source sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"logSheetName\"] }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "processed_at": "={{ $now.toISO() }}",
+            "error_message": "Missing required field",
+            "status": "skipped"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        400
+      ],
+      "id": "1dfb8cfc-46cb-4dfe-8bdc-2e6714a860d0",
+      "name": "Log skipped record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1568,
+        16
+      ],
+      "id": "e8dfb985-5d7e-4d64-8377-c8627388ae2c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"logSheetName\"] }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "duplicate",
+            "error_message": "no enrichment or save happens for this item",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        208
+      ],
+      "id": "55b28d29-1d13-458a-af7c-8fd808c1630d",
+      "name": "Log duplicate",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d403bd56-7020-461d-9c50-ee1948fc538e",
+              "leftValue": "={{ $json.Insight }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "7ef8a12c-fd32-4dce-bb4b-60bb93bee54c",
+              "leftValue": "={{ $json.Engagement_Level }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "d44b4f0f-59f1-4dd5-920a-3ec8d80efde1",
+      "name": "Validate input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nif (!staticData.processedKeys) staticData.processedKeys = {};\n\nconst items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const incoming = item.json;\n\n  if (!incoming.record_key) {\n    output.push({ json: { ...incoming, duplicate: false } });\n    continue;\n  }\n\n  const key = String(incoming.record_key).trim().toLowerCase().replace(/\\/+$/, '');\n  let isDuplicate = false;\n\n  if (staticData.processedKeys[key] !== undefined) {\n    isDuplicate = true;\n  } else {\n    staticData.processedKeys[key] = true;\n  }\n\n  output.push({\n    json: {\n      ...incoming,\n      record_key: key,\n      duplicate: isDuplicate\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        208
+      ],
+      "id": "8acb0507-e80a-4758-b9d9-7109f676e9c9",
+      "name": "Check duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b6fd721c-8fe4-4c1c-83d0-70f51d094b89",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        208
+      ],
+      "id": "a830fb84-1614-48da-826d-5759b091c06d",
+      "name": "is Duplicate?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ec579495-ddce-4951-9173-7ae0f1f2f7b2",
+              "leftValue": "={{ $json.ai_valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2816,
+        -128
+      ],
+      "id": "4c5d4f45-271b-4a17-9729-91082e9b9127",
+      "name": "Quality filter"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"logSheetName\"] }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "skipped",
+            "error_message": "insufficient data after enrichment",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3040,
+        -32
+      ],
+      "id": "c352bdeb-e5ca-43cb-806b-e5cb77df2d69",
+      "name": "Log unusable record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"outputSheetName\"] }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "category": "={{ $json.category }}",
+            "run_id": "={{ $('Prepare AI context').item.json.run_id }}",
+            "record_key": "={{ $('Prepare AI context').item.json.record_key }}",
+            "title": "={{ $json.title }}",
+            "rationale": "={{ $json.rationale }}",
+            "priority": "={{ $json.priority }}",
+            "source_reference": "={{ $json.source_reference }}",
+            "due_days": "={{ $json.due_days }}",
+            "owner_role": "={{ $json.owner_role }}",
+            "ice_score": "={{ $json.ice_score }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rationale",
+              "displayName": "rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ice_score",
+              "displayName": "ice_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owner_role",
+              "displayName": "owner_role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "due_days",
+              "displayName": "due_days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source_reference",
+              "displayName": "source_reference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3040,
+        -224
+      ],
+      "id": "b9b20fc8-3533-41d8-9e24-8d79d8478f93",
+      "name": "Save to output",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"logSheetName\"] }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "success",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3264,
+        -32
+      ],
+      "id": "10f5ae71-5c92-4c9d-8dac-85e44b2d5e32",
+      "name": "Log: success",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "be0d0493-49c6-4c7d-a222-9c9866e38019",
+              "name": "spreadsheetId",
+              "value": "1w5qV3Vn3RrhoxxwgUrXb3QtatcU9rxZSh5Dhc4PwP1Y",
+              "type": "string"
+            },
+            {
+              "id": "5e5c862f-5858-40bb-8812-3561c2ee0e5d",
+              "name": "inputSheetName",
+              "value": "source_competitors",
+              "type": "string"
+            },
+            {
+              "id": "185e93f9-c9af-4940-bcec-c20b743424ab",
+              "name": "outputSheetName",
+              "value": "recommendation_tracker",
+              "type": "string"
+            },
+            {
+              "id": "270ce505-024d-4bdb-9c50-19e553c3ff9c",
+              "name": "logSheetName",
+              "value": "run_log",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        352
+      ],
+      "id": "dcfe865a-7712-4b87-90e6-3c3abc315ba6",
+      "name": "Config"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.item.json;\n\nconst contextText =\n`Insight: ${d.Insight}\nTopic: ${d.Topic}\nEngagement Level: ${d.Engagement_Level}\nSummary: ${d.Summary}`;\n\nreturn {\n  json: {\n    ...d,\n    context_text: contextText\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        -128
+      ],
+      "id": "c6ae76d3-2341-4bfd-9683-2def61e10bc6",
+      "name": "Prepare AI context"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\nconst run_id = item.run_id;\nconst record_key = item.record_key;\nconst topic = item.Topic;\n\nlet parsed = item.output;\n\n// Fallback: If it's a string (e.g., if you swap models or remove the parser later)\nif (typeof parsed === 'string') {\n  let raw = parsed.trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    return [{\n      json: {\n        run_id,\n        record_key,\n        ai_valid: false,\n        error_reason: 'AI output was not valid JSON string'\n      }\n    }];\n  }\n}\n\n// Ensure it's treated as an array\nif (parsed && !Array.isArray(parsed)) {\n  parsed = [parsed];\n}\n\nif (!parsed || parsed.length === 0) {\n  return [{\n    json: { run_id, record_key, ai_valid: false, error_reason: 'AI returned empty array or invalid format' }\n  }];\n}\n\nconst required = ['title', 'rationale', 'category', 'priority', 'ice_score', 'owner_role', 'due_days'];\nconst output = [];\n\nfor (const rec of parsed) {\n  const missing = required.filter(f => rec[f] === undefined || rec[f] === '' || rec[f] === null);\n  if (missing.length > 0) {\n    output.push({\n      json: {\n        run_id,\n        record_key,\n        ai_valid: false,\n        error_reason: `Missing fields: ${missing.join(', ')}`\n      }\n    });\n    continue;\n  }\n\n  output.push({\n    json: {\n      run_id,\n      record_key,\n      ai_valid: true,\n      title: rec.title,\n      rationale: rec.rationale,\n      category: rec.category,\n      priority: rec.priority,\n      ice_score: rec.ice_score,\n      owner_role: rec.owner_role,\n      due_days: rec.due_days,\n      source_reference: rec.source_reference || topic\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2592,
+        -128
+      ],
+      "id": "46e94b97-c6f0-4718-b8d6-5f2559d09329",
+      "name": "Parse & validate AI output"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are a senior marketing strategist. Given one competitor insight, generate 1-3 concrete, actionable marketing recommendations.\n\nReturn a JSON array of objects where each object contains exactly these fields:\n- title (string, specific and actionable)\n- rationale (string, 1-2 sentences tied to the insight)\n- category (one of: Content, Campaign, SEO, Paid, Social, Product)\n- priority (one of: High, Medium, Low)\n- ice_score (number 1-10, combined Impact/Confidence/Ease estimate)\n- owner_role (one of: Content Lead, Growth Marketer, Social Media Manager, Product Marketer)\n- due_days (integer, days to complete)\n- source_reference (string, restate the Topic this came from)\n\nDo not wrap the response in markdown code blocks. Return only the raw JSON array.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2240,
+        -128
+      ],
+      "id": "aa611b4b-a80f-4c00-a12d-3a256f44b66b",
+      "name": "Marketing Strategist Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        -128
+      ],
+      "id": "f4865b9d-0076-4f11-bb04-2c5c83db95fc",
+      "name": "Wait",
+      "webhookId": "f706e95f-9570-4113-bc5f-8d9f55e0dede"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"title\": \"Launch a weekly 60-second reels series\",\n    \"rationale\": \"Competitors are seeing massive engagement with short-form videos regarding prompt engineering.\",\n    \"category\": \"Social\",\n    \"priority\": \"High\",\n    \"ice_score\": 8,\n    \"owner_role\": \"Social Media Manager\",\n    \"due_days\": 7,\n    \"source_reference\": \"Prompt Engineering\"\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2384,
+        96
+      ],
+      "id": "f20fbf1f-5bdd-4d69-817d-86476c20698e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2096,
+        80
+      ],
+      "id": "f744633b-f50d-49d7-9f43-f1ff53a9f42f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0EZ2GcdjMeSBtKTE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read source sheet": {
+      "main": [
+        [
+          {
+            "node": "Set run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log duplicate": {
+      "main": [
+        []
+      ]
+    },
+    "Validate input": {
+      "main": [
+        [
+          {
+            "node": "Check duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log skipped record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate": {
+      "main": [
+        [
+          {
+            "node": "is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality filter": {
+      "main": [
+        [
+          {
+            "node": "Save to output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log unusable record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log unusable record": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to output": {
+      "main": [
+        [
+          {
+            "node": "Log: success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log: success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read source sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI context": {
+      "main": [
+        [
+          {
+            "node": "Marketing Strategist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & validate AI output": {
+      "main": [
+        [
+          {
+            "node": "Quality filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing Strategist Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse & validate AI output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Prepare AI context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Marketing Strategist Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Marketing Strategist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1f60b154-b195-487a-9956-9f9b2ffaab5a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "BjtdQe7GfyCgyI1P",
+  "tags": []
+}
