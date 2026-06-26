@@ -1,0 +1,384 @@
+{
+  "name": "TAP1005",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        112
+      ],
+      "id": "bdd86931-b4e8-4c73-b506-15499a40f6e9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7440019d-0851-499c-8dd5-26270a34212a",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "0f37b8c0-b323-4d2d-9a1a-2df407cea78c",
+              "name": "record_key",
+              "value": "={{ $json.email.trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "d99650f0-8b2a-459a-b40a-2e1c1f721a34",
+              "name": "duplicate",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        112
+      ],
+      "id": "b2d05e85-8949-4ea5-9b8b-1989be51511a",
+      "name": "Set run ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7ef8a12c-fd32-4dce-bb4b-60bb93bee54c",
+              "leftValue": "={{ $json.full_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d403bd56-7020-461d-9c50-ee1948fc538e",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        112
+      ],
+      "id": "fe1f8583-608b-483d-9a58-874b567a8b24",
+      "name": "Validate input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get global static data storage\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.processedKeys) {\n  staticData.processedKeys = {};\n}\n\nconst items = $input.all();\nconst output = [];\n\n// 2. Loop through every incoming item\nfor (const item of items) {\n  const incoming = item.json;\n\n  // If no email, can't dedupe on it — pass through, not flagged\n  if (!incoming.email) {\n    output.push({ json: { ...incoming, duplicate: false } });\n    continue;\n  }\n\n  // Normalize key\n  const key = String(incoming.email).trim().toLowerCase();\n  let isDuplicate = false;\n\n  if (staticData.processedKeys[key] !== undefined) {\n    // Already seen this email — within this run or a previous run\n    isDuplicate = true;\n  } else {\n    // Reserve the slot immediately (handles same-batch duplicates too)\n    staticData.processedKeys[key] = {\n      learner_id: incoming.learner_id,\n      row_id: incoming.row_id,\n      processed_at: new Date().toISOString()\n    };\n  }\n\n  output.push({\n    json: {\n      ...incoming,\n      record_key: key,\n      duplicate: isDuplicate\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        16
+      ],
+      "id": "cb9e9c17-a4e3-4d4d-8b21-d668a01aac95",
+      "name": "Check duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b6fd721c-8fe4-4c1c-83d0-70f51d094b89",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        16
+      ],
+      "id": "3b534b4e-793e-4494-bcfb-c9ec90f7194b",
+      "name": "is Duplicate?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM tap1005.raw_learners WHERE status = 'pending';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        112
+      ],
+      "id": "c7520ea5-8572-4c42-97fd-3a2bf4fddbbe",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tap1005.run_log (run_id, record_key, status, error_message)\nVALUES (\n    '{{ $json.run_id }}', \n    {{ $json.record_key ? \"'\" + $json.record_key + \"'\" : \"NULL\" }},\n    'skipped', \n    'Missing required field'\n  );",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        208
+      ],
+      "id": "67b74e0c-e2e7-4926-b1c6-53cef08778b1",
+      "name": "Log skipped record",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tap1005.run_log (run_id, record_key, status, error_message)\nVALUES (\n  '{{ $json.run_id }}',\n'{{ $json.record_key }}',\n  'duplicate',\n  'no enrichment or save happens for this item'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        112
+      ],
+      "id": "e410eedf-262a-4f48-af45-35a4fbd7ba74",
+      "name": "Log duplicate",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tap1005.run_log (run_id, record_key, status, error_message)\nVALUES (\n  '{{ $json.run_id }}',\n  '{{ $json.record_key }}',\n 'success',\n  NULL\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1568,
+        16
+      ],
+      "id": "2af386e1-f133-47e4-96ea-32b04ffa64c4",
+      "name": "Log success",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst output = [];\n\nconst runId = $now.toFormat('yyyyMMdd-HHmmss') + '-' + Math.random().toString(36).substring(2, 8);\n\nfor (const item of items) {\n  const d = item.json;\n\n  // Two-step title cleaning pattern\n  let cleanName = (d.full_name || '').toString().trim();\n  cleanName = cleanName.replace(/\\s+/g, ' ');\n\n  output.push({\n    json: {\n      opportunity_id: 'OPP-' + (d.learner_id || 'UNK').toString().replace(/[^a-zA-Z0-9]/g, ''),\n      full_name: $input.first().json.full_name,\n      learner_id: d.learner_id,\n      opportunity_name: cleanName + ' - ' + (d.course_interest || 'General Interest'),\n      contact_email: (d.email || '').toString().trim().toLowerCase(),\n      contact_phone: d.phone || null,\n      stage: 'New',\n      source: d.lead_source || 'Unknown',\n      run_id: runId,\n      record_key: d.record_key,\n      row_id: d.row_id, // carried through so we can update raw_learners status later\n      created_at: new Date().toISOString(),\n      updated_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        -80
+      ],
+      "id": "45dee623-ddf0-45bb-8315-79c2e7e932e3",
+      "name": "Transform to Opportunity Schema"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tap1005.opportunity (\n    opportunity_id, learner_id, opportunity_name, contact_email, \n    contact_phone, stage, source, run_id, record_key, created_at, updated_at    \n)\nVALUES (\n    '{{ $json.opportunity_id }}', -- Or handle via a UUID generation if it's new\n    '{{ $json.learner_id }}',\n    '{{ $json.full_name }}',      -- Maps to opportunity_name\n    '{{ $json.contact_email }}',\n    '{{ $json.contact_phone }}',\n    'Applied',                    -- Default stage string\n    '{{ $json.source }}',\n    '{{ $json.run_id }}',\n    '{{ $json.record_key }}',\n    NOW(),                        -- PostgreSQL timestamp functions work natively\n    NOW()\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1568,
+        -176
+      ],
+      "id": "5e72f967-063d-415c-aeb5-ae97fb822d7e",
+      "name": "Insert Opportunity",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate input": {
+      "main": [
+        [
+          {
+            "node": "Check duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log skipped record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate": {
+      "main": [
+        [
+          {
+            "node": "is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Transform to Opportunity Schema",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Set run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log success": {
+      "main": [
+        []
+      ]
+    },
+    "Transform to Opportunity Schema": {
+      "main": [
+        [
+          {
+            "node": "Insert Opportunity",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Opportunity": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fa4ce062-4a46-46e5-94ca-449a5afe2b86",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "YnnVAq4KtviuOMY8",
+  "tags": []
+}
