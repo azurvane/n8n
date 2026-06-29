@@ -1,0 +1,829 @@
+{
+  "name": "TAP1007",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "650f470c-5c32-4ff2-aab8-cf09698c2366",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b6fd721c-8fe4-4c1c-83d0-70f51d094b89",
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -128
+      ],
+      "id": "d302e164-d8ab-445e-a8c9-893440bc6a76",
+      "name": "is Duplicate?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the global static data storage\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.processedRecords) {\n  staticData.processedRecords = {};\n}\n\n// 2. Get ALL incoming items from the node\nconst items = $input.all();\nconst output = [];\n\n// 3. Loop through every single item\nfor (const item of items) {\n  const incoming = item.json;\n\n  if (!incoming.call_id) {\n    output.push({ json: { ...incoming, duplicate: false } });\n    continue;\n  }\n\n  // Normalize call_id for consistency\n  const key = String(incoming.call_id).trim().toLowerCase();\n  let isDuplicate = false;\n  let finalRecord = { ...incoming };\n\n  if (staticData.processedRecords[key] !== undefined) {\n    isDuplicate = true;\n    const existing = staticData.processedRecords[key];\n    const mergeFields = ['row_number', 'event_id', 'call_id', 'student_name', 'status', 'run_id', 'record_key'];\n    for (const field of mergeFields) {\n      if ((finalRecord[field] === undefined || finalRecord[field] === '') && existing[field]) {\n        finalRecord[field] = existing[field];\n      }\n    }\n    staticData.processedRecords[key] = finalRecord;\n  } else {\n    // Reserve the slot immediately to prevent same-batch race conditions\n    staticData.processedRecords[key] = finalRecord;\n  }\n\n  output.push({\n    json: {\n      ...finalRecord,\n      duplicate: isDuplicate\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -128
+      ],
+      "id": "f5a861f1-dd02-48ce-a52f-8814570b8586",
+      "name": "Check duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7ef8a12c-fd32-4dce-bb4b-60bb93bee54c",
+              "leftValue": "={{ $json.call_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d403bd56-7020-461d-9c50-ee1948fc538e",
+              "leftValue": "={{ $json.student_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -32
+      ],
+      "id": "974472c9-95ec-4f38-8df5-8a59e21caaeb",
+      "name": "Validate input"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7440019d-0851-499c-8dd5-26270a34212a",
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "id": "0f37b8c0-b323-4d2d-9a1a-2df407cea78c",
+              "name": "record_key",
+              "value": "={{ $json.call_id.trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "d99650f0-8b2a-459a-b40a-2e1c1f721a34",
+              "name": "duplicate",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "a9bc62f2-78fa-48f6-86cc-f80534716855",
+      "name": "Set run ID"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c",
+          "mode": "list",
+          "cachedResultName": "TAP1007",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1693504813,
+          "mode": "list",
+          "cachedResultName": "run_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit#gid=1693504813"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "processed_at": "={{ $now.toISO() }}",
+            "error_message": "Missing required field",
+            "status": "skipped",
+            "record_key": "={{ $json.record_key }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        64
+      ],
+      "id": "1c3bfb46-5e42-4318-990f-1fb75f0f306f",
+      "name": "Log invalid",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c",
+          "mode": "list",
+          "cachedResultName": "TAP1007",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1693504813,
+          "mode": "list",
+          "cachedResultName": "run_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit#gid=1693504813"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "duplicate",
+            "error_message": "no enrichment or save happens for this item",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        -32
+      ],
+      "id": "bb950e86-275c-4a20-999e-b403258c6b2e",
+      "name": "Log duplicate",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        -224
+      ],
+      "id": "35e5c3c8-8c45-4aef-8736-2299bcdb8fff",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        -304
+      ],
+      "id": "05ffbe31-a909-4b20-a6d9-f9b9c078cc6f",
+      "name": "Wait",
+      "webhookId": "24d7affc-28b0-4f22-93cf-fc01d62c4f6b"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c",
+          "mode": "list",
+          "cachedResultName": "TAP1007",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1693504813,
+          "mode": "list",
+          "cachedResultName": "run_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit#gid=1693504813"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "processed_at": "={{ $now.toISO() }}",
+            "status": "success",
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $('Transform Transcript').item.json.record_key }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2688,
+        -224
+      ],
+      "id": "821bd703-4f01-4e2c-89e0-55c6c7eb3d89",
+      "name": "Log: success",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c",
+          "mode": "list",
+          "cachedResultName": "TAP1007",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Source",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "4809e2db-a1c8-4afa-9c8a-cce080f3bb43",
+      "name": "Read Source Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.retellai.com/v2/get-call/{{ $json.call_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1792,
+        -224
+      ],
+      "id": "2c480177-6ddf-4583-8465-53c260da80a6",
+      "name": "Get Call Transcript",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "f73319FASX0YHaoc",
+          "name": "Retell AI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2016,
+        -304
+      ],
+      "id": "93537cec-acb2-4ba9-8319-36642f3e01b8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Access elements directly from the input array\nconst sourceRecord = $input.all()[0].json;\nconst retellResponse = $input.all()[1].json;\n\nconst callAnalysis = retellResponse.call_analysis || {};\n\nreturn {\n  json: {\n    run_id: sourceRecord.run_id,\n    event_id: sourceRecord.event_id, // Note: event_id isn't in your sample input, it will default to undefined\n    record_key: sourceRecord.record_key,\n    call_id: retellResponse.call_id,\n    student_name: sourceRecord.student_name,\n    agent_name: retellResponse.agent_name || '',\n    call_status: retellResponse.call_status || '',\n    disconnection_reason: retellResponse.disconnection_reason || '',\n    transcript_summary: callAnalysis.call_summary || (retellResponse.transcript || '').slice(0, 200),\n    sentiment: callAnalysis.user_sentiment || 'unknown',\n    call_successful: callAnalysis.call_successful === true,\n    duration_sec: retellResponse.duration_ms ? Math.round(retellResponse.duration_ms / 1000) : null,\n    recording_url: retellResponse.recording_url || '',\n    crm_status: 'pending',\n    processed_at: new Date().toISOString()\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        -304
+      ],
+      "id": "1022fe29-2950-49b8-8885-23fa9ad539c5",
+      "name": "Transform Transcript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c",
+          "mode": "list",
+          "cachedResultName": "TAP1007",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 748186752,
+          "mode": "list",
+          "cachedResultName": "call_output",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wmuL-gGiE3bOUiPc9v3QLDlgUoEBbjxEFN4KhO5Oq7c/edit#gid=748186752"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "student_name": "={{ $json.student_name }}",
+            "call_id": "={{ $json.call_id }}",
+            "transcript_summary": "={{ $json.transcript_summary }}",
+            "sentiment": "={{ $json.sentiment }}",
+            "duration_sec": "={{ $json.duration_sec }}",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "call_id",
+              "displayName": "call_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "student_name",
+              "displayName": "student_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transcript_summary",
+              "displayName": "transcript_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "duration_sec",
+              "displayName": "duration_sec",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2464,
+        -304
+      ],
+      "id": "2c09ead9-ebc8-4f54-8497-cf9bd214dbc7",
+      "name": "Write Output",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read Source Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate": {
+      "main": [
+        [
+          {
+            "node": "is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate input": {
+      "main": [
+        [
+          {
+            "node": "Check duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get Call Transcript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log: success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Source Sheet": {
+      "main": [
+        [
+          {
+            "node": "Set run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Call Transcript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Transform Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Transcript": {
+      "main": [
+        [
+          {
+            "node": "Write Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Output": {
+      "main": [
+        [
+          {
+            "node": "Log: success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5e1984d9-ec52-4c89-8242-d774e3c1abad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "Y0PWd4yoJdMWiedD",
+  "tags": []
+}
