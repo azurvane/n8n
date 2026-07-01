@@ -1,0 +1,924 @@
+{
+  "name": "TAP2002",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        3680,
+        448
+      ],
+      "id": "d6af78c9-c9dd-41a3-994b-66976e79db17",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "spreadsheetId",
+              "value": "1-JfClLBY5NtESm50hv5piXmyvmcRNTeAy4FInnmajpM",
+              "type": "string",
+              "id": "bc7797d7-5819-4948-9985-eff8ebecc726"
+            },
+            {
+              "name": "inputSheetName",
+              "value": "source_competitors",
+              "type": "string",
+              "id": "2d08b489-4259-437b-905a-5684278a5e17"
+            },
+            {
+              "name": "outputSheetName",
+              "value": "competitor_post_count",
+              "type": "string",
+              "id": "bef25109-9917-4d37-aa98-59e551acc7a3"
+            },
+            {
+              "name": "logSheetName",
+              "value": "run_log",
+              "type": "string",
+              "id": "d319b095-1e83-4ffb-a380-1e4434f2bfb9"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3904,
+        448
+      ],
+      "id": "4ce7d785-6643-4c2b-a96f-116a111c7f12",
+      "name": "Config"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.inputSheetName }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4128,
+        448
+      ],
+      "id": "6bcdfc1d-ea15-49e8-ab40-70d10094c2db",
+      "name": "Read source sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "name": "record_key",
+              "value": "={{ $json.instagram_handle?.trim().toLowerCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4352,
+        448
+      ],
+      "id": "a76d4746-174e-4093-8d0f-cac637e0b190",
+      "name": "Set run ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.competitor_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "5facec3b-cc07-4cc8-8afa-d7019a60a5a7"
+            },
+            {
+              "leftValue": "={{ $json.instagram_handle }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "6f83f6a9-4a5b-4025-bd26-94d7d122df6b"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4576,
+        448
+      ],
+      "id": "7fe405ab-1ef9-4dee-af14-7a6f832a061c",
+      "name": "Validate input"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $node[\"Config\"].json[\"logSheetName\"] }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "skipped",
+            "error_message": "Missing required field",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4800,
+        496
+      ],
+      "id": "0c2d0516-ce13-4a0b-8d3b-f969a5bbb78b",
+      "name": "Log skipped record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        5248,
+        112
+      ],
+      "id": "3b661986-237a-4be5-93ed-7b8c07823b03",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Competition Count Post - Duplicate Check using internal storage\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.processedRecords) {\n  staticData.processedRecords = {};\n}\n\nconst items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const incoming = item.json;\n  if (!incoming.instagram_handle) {\n    output.push({ json: { ...incoming, duplicate: false } });\n    continue;\n  }\n\n  const key = String(incoming.instagram_handle).trim().toLowerCase().replace(/^@/, '').replace(/\\//g, '');\n  let isDuplicate = false;\n  let finalRecord = { ...incoming };\n\n  if (staticData.processedRecords[key] !== undefined) {\n    isDuplicate = true;\n    const existing = staticData.processedRecords[key];\n    const mergeFields = ['row_number','competitor_name','instagram_handle','market_category','run_id','record_key'];\n    for (const field of mergeFields) {\n      if ((finalRecord[field] === undefined || finalRecord[field] === '') && existing[field]) {\n        finalRecord[field] = existing[field];\n      }\n    }\n    staticData.processedRecords[key] = finalRecord;\n  } else {\n    staticData.processedRecords[key] = finalRecord;\n  }\n\n  output.push({ json: { ...finalRecord, record_key: key, duplicate: isDuplicate } });\n}\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4800,
+        304
+      ],
+      "id": "d0f75d41-9499-485d-adc5-ef5d7ae52aa5",
+      "name": "Check duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false"
+              }
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5024,
+        304
+      ],
+      "id": "4ed5c736-c4c5-4c34-9d88-ac38c4adfae2",
+      "name": "is Duplicate?"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $node[\"Config\"].json[\"logSheetName\"] }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "duplicate",
+            "error_message": "no enrichment",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        5248,
+        304
+      ],
+      "id": "f06cae33-8ac4-43cb-9eba-8df0133ba28d",
+      "name": "Log duplicate",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5472,
+        32
+      ],
+      "id": "935a0ae8-f0c8-405b-9208-6249c0f6f954",
+      "name": "Wait",
+      "webhookId": "72db7581-85f8-4c21-b586-7aa2a8b4111f"
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorSource": "store",
+        "actorId": {
+          "__rl": true,
+          "value": "dSCLg0C3YEZ83HzYX",
+          "mode": "list",
+          "cachedResultName": "Instagram Profile Scraper (apify/instagram-profile-scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/dSCLg0C3YEZ83HzYX/input"
+        },
+        "customBody": "={\n  \"usernames\": [\"{{ $json.instagram_handle }}\"]\n}",
+        "timeout": 180000
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        5696,
+        112
+      ],
+      "id": "cfd459ca-b1be-4367-98b0-be8fe850487a",
+      "name": "Apify Instagram Profile",
+      "credentials": {
+        "apifyApi": {
+          "id": "znpDJecMlNiyiPd3",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Retrieve the input data\nconst items = $input.all();\n\nlet part1, part2;\n\n// Check if the input came in as a single item containing an array, or as two separate n8n items\nif (items.length === 1 && Array.isArray(items[0].json)) {\n  part1 = items[0].json[0];\n  part2 = items[0].json[1];\n} else if (items.length >= 2) {\n  part1 = items[0].json;\n  part2 = items[1].json;\n} else {\n  throw new Error(\"Unexpected input structure. Expected an array with at least two objects.\");\n}\n\n// Extract and map all available high-level metadata from Part 2\nconst mappedPart2 = {\n  profile_id: part2.id,\n  instagram_handle: part2.username,\n  profile_url: part2.url,\n  normalized_url: part2.inputUrl || part2.url,\n  full_name: part2.fullName,\n  bio_description: part2.biography,\n  followers_count: part2.followersCount,\n  following_count: part2.followsCount,\n  post_count_estimate: part2.postsCount,\n  igtv_video_count: part2.igtvVideoCount,\n  highlight_reel_count: part2.highlightReelCount,\n  is_business_account: part2.isBusinessAccount,\n  is_private: part2.private,\n  is_verified: part2.verified,\n  business_category_name: part2.businessCategoryName,\n  external_url: part2.externalUrl,\n  profile_pic_url: part2.profilePicUrlHD || part2.profilePicUrl,\n  facebook_id: part2.fbid\n};\n\n// Extract business address fields explicitly if they exist\nif (part2.businessAddress) {\n  mappedPart2.business_city = part2.businessAddress.city_name;\n  mappedPart2.business_street = part2.businessAddress.street_address;\n  mappedPart2.business_zip = part2.businessAddress.zip_code;\n  mappedPart2.business_latitude = part2.businessAddress.latitude;\n  mappedPart2.business_longitude = part2.businessAddress.longitude;\n}\n\n// Combine everything from part 1 with the extracted fields from part 2\nconst result = {\n  ...part1,\n  ...mappedPart2\n};\n\n// Return the merged object back to n8n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6144,
+        32
+      ],
+      "id": "e5397a5d-467b-440f-8b4b-275c0df7d662",
+      "name": "Shape output"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.post_count_estimate }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty"
+              },
+              "id": "7cf4678a-1463-4dd6-bfcf-00a2644ff558"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6368,
+        32
+      ],
+      "id": "99d0fe88-501e-4050-a506-81081153c125",
+      "name": "Quality filter"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $node[\"Config\"].json[\"outputSheetName\"] }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "competitor_name": "={{ $json.competitor_name }}",
+            "instagram_handle": "={{ $json.instagram_handle }}",
+            "post_count_estimate": "={{ $json.post_count_estimate }}",
+            "followers_count": "={{ $json.followers_count }}",
+            "bio_description": "={{ $json.bio_description }}",
+            "category": "={{ $json.market_category }}",
+            "last_checked": "={{ $now.toISO() }}",
+            "record_id": "={{ $json.record_key }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_id",
+              "displayName": "record_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "competitor_name",
+              "displayName": "competitor_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "instagram_handle",
+              "displayName": "instagram_handle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post_count_estimate",
+              "displayName": "post_count_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "followers_count",
+              "displayName": "followers_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "bio_description",
+              "displayName": "bio_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_checked",
+              "displayName": "last_checked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        6592,
+        32
+      ],
+      "id": "ef08afcb-0fc2-44e3-bb6e-e1aee04018a2",
+      "name": "Save to output",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $node[\"Config\"].json[\"logSheetName\"] }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "success",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        6816,
+        112
+      ],
+      "id": "d3858529-c6ad-4411-9160-66109a917d98",
+      "name": "Log success",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5920,
+        32
+      ],
+      "id": "ee09c8c1-449f-45e6-b2ef-b9371adc757a",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read source sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read source sheet": {
+      "main": [
+        [
+          {
+            "node": "Set run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate input": {
+      "main": [
+        [
+          {
+            "node": "Check duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log skipped record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate": {
+      "main": [
+        [
+          {
+            "node": "is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Apify Instagram Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Instagram Profile": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Shape output": {
+      "main": [
+        [
+          {
+            "node": "Quality filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality filter": {
+      "main": [
+        [
+          {
+            "node": "Save to output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to output": {
+      "main": [
+        [
+          {
+            "node": "Log success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Shape output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "91a28752-9b81-4ef4-bf1d-b055b001098f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "ibyYXigbDbGIe6BK",
+  "tags": []
+}
