@@ -1,0 +1,537 @@
+{
+  "name": "USA3002",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        208
+      ],
+      "name": "Manual Trigger",
+      "id": "855eb66e-d9c1-45ac-a1f1-5478d9f99f7d"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "spreadsheetId",
+              "value": "1LcXnsGm5vty2G8sx_4YWloorrVU5xsnYaMs-aqebBSI",
+              "type": "string",
+              "id": "9bb78102-1b8e-4bbf-b6d7-a29cff3d6dad"
+            },
+            {
+              "name": "inputSheet",
+              "value": "source_partners",
+              "type": "string",
+              "id": "d8998f93-0b3b-44dd-8a2b-63fc9af64d62"
+            },
+            {
+              "name": "outputSheet",
+              "value": "certification_levels",
+              "type": "string",
+              "id": "5971aacd-4833-4f0b-946d-9ec2d0152980"
+            },
+            {
+              "name": "logSheet",
+              "value": "run_log",
+              "type": "string",
+              "id": "8f3c8720-f59d-49f0-8bee-6929a5087190"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1408,
+        208
+      ],
+      "name": "Config",
+      "id": "6f63b6f2-b28a-40e6-b286-d1ea0b034fae"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.inputSheet }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1200,
+        208
+      ],
+      "name": "Read Source",
+      "id": "ed028fdf-7d1d-41d1-9a1f-93f23f0e2500",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            },
+            {
+              "name": "record_key",
+              "value": "={{ $json.website_url?.trim().toLowerCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1008,
+        208
+      ],
+      "name": "Set Run ID",
+      "id": "84ab5d32-0ebe-44bf-9b39-3ada77d91795"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.company_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "d5c60d10-d9e9-44d3-a314-d9c2892c009f"
+            },
+            {
+              "leftValue": "={{ $json.website_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "7e16e88a-9e08-48ca-8017-07c8fb932d12"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -800,
+        208
+      ],
+      "name": "Validate",
+      "id": "16fa8486-d637-48e5-ac08-c8c986b52e3d"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -608,
+        112
+      ],
+      "name": "Loop",
+      "id": "e4690c4a-9544-45ce-aa01-78e521b1bd0c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/acumatica-simulator",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=company_name",
+              "value": "={{ $json.company_name }}"
+            },
+            {
+              "name": "website_url",
+              "value": "={{ $json.website_url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -400,
+        112
+      ],
+      "name": "Call Simulator",
+      "id": "9952e811-519a-4336-bd36-41bf4e23fdb6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get all current items from the \"Loop\" node\nconst loopItems = $('Loop').all();\n\n// 2. Map through every item in the loop to combine the data\nreturn loopItems.map(item => {\n    const loopData = item.json;\n    \n    return {\n        json: {\n            // Take absolutely everything inside the Loop item\n            ...loopData, \n            \n            // Add or overwrite the certification/notes logic from the current node context ($json)\n            certification_level: $json.certification_level || 'Unknown',\n            notes: $json.notes || '',\n            processed_at: new Date().toISOString()\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        112
+      ],
+      "name": "Shape Output",
+      "id": "27aca6f3-7b25-4c72-b8b3-5a27933d1f6c"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $node[\"Config\"].json[\"outputSheet\"] }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "company_name": "={{ $json.company_name }}",
+            "website_url": "={{ $json.website_url }}",
+            "certification_level": "={{ $json.certification_level }}",
+            "notes": "={{ $json.notes }}",
+            "processed_at": "={{ $json.processed_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website_url",
+              "displayName": "website_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "certification_level",
+              "displayName": "certification_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Save to Output",
+      "id": "5a115921-c845-41fe-832a-90f1b4b60221",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Config\"].json[\"spreadsheetId\"] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $node[\"Config\"].json[\"logSheet\"] }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "record_key": "={{ $json.record_key }}",
+            "status": "success",
+            "processed_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "record_key",
+              "displayName": "record_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        112
+      ],
+      "name": "Log Success",
+      "id": "42d466b7-c3e6-431e-8a1c-6cb6f1c52d80",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Source": {
+      "main": [
+        [
+          {
+            "node": "Set Run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate": {
+      "main": [
+        [
+          {
+            "node": "Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Call Simulator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Simulator": {
+      "main": [
+        [
+          {
+            "node": "Shape Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Output": {
+      "main": [
+        [
+          {
+            "node": "Save to Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Output": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a0d6be81-4f5d-40cd-acc1-4ece31a25326",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "5k8c0U83OLO5Fcom",
+  "tags": []
+}
