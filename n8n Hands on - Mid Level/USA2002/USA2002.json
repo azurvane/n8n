@@ -1,0 +1,294 @@
+{
+  "name": "USA2002",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        512
+      ],
+      "id": "d1bf4e1f-d39c-4d57-a38b-36840bdd76f0",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, record_id, profile_url, full_name, email, company, status FROM usa2002.records WHERE status = 'new' ORDER BY record_id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1424,
+        512
+      ],
+      "id": "c059fc88-3765-43b3-9205-b0ddd9d29d27",
+      "name": "Read Pending Records",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "run_id",
+              "value": "={{ $now.toFormat('yyyyMMdd-HHmmss') }}-{{ Math.random().toString(36).substring(2, 8) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        512
+      ],
+      "id": "479dd1da-1628-41a3-a804-42ed0d21bcfc",
+      "name": "Set Run ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.profile_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "70c88673-2990-485b-b765-79d0215439f1"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -976,
+        512
+      ],
+      "id": "ecd98857-7140-4a56-8d7a-788b19d0b35d",
+      "name": "Validate Record"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO usa2002.merge_log (run_id, record_id, action, reason, processed_at) VALUES ('{{ $json.run_id }}', '{{ $json.record_id }}', 'skipped', 'Missing key fields', NOW());",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -752,
+        608
+      ],
+      "id": "65b9937c-3326-427e-ad11-3459d0f99012",
+      "name": "Log Skipped",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -752,
+        416
+      ],
+      "id": "fd5c7832-396a-4a32-8f1f-3041f588e08a",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// === Duplicate Detection + Merger ===\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.masterRecords) staticData.masterRecords = {};\n\nconst items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const rec = item.json;\n  const key = String(rec.profile_url || rec.email || rec.record_id).trim().toLowerCase().replace(/\\//g, '');\n\n  let isDuplicate = false;\n  let masterRecord = rec;\n\n  if (staticData.masterRecords[key]) {\n    isDuplicate = true;\n    const existing = staticData.masterRecords[key];\n    // Merge: Prefer non-empty values from either record\n    masterRecord = {\n      ...existing,\n      full_name: existing.full_name || rec.full_name,\n      email: existing.email || rec.email,\n      company: existing.company || rec.company,\n      profile_url: existing.profile_url || rec.profile_url\n    };\n  } else {\n    staticData.masterRecords[key] = masterRecord;\n  }\n\n  output.push({\n    json: {\n      ...masterRecord,\n      run_id: rec.run_id,\n      record_key: key,\n      is_duplicate: isDuplicate,\n      master_record_id: isDuplicate ? staticData.masterRecords[key].record_id : rec.record_id\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        336
+      ],
+      "id": "c898465b-7ae5-4e0e-bc18-c16ada64c2b0",
+      "name": "Detect & Merge Duplicates"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE usa2002.records SET status = CASE WHEN '{{ $json.is_duplicate }}' = 'true' THEN 'merged' ELSE 'processed' END, master_record_id = '{{ $json.master_record_id }}' WHERE record_id = '{{ $json.record_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -304,
+        336
+      ],
+      "id": "047ea70a-9989-4928-82c2-4f2973862928",
+      "name": "Update Record Status",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO usa2002.merge_log (run_id, record_id, action, master_record_id, reason, processed_at) VALUES ('{{ $json.run_id }}', '{{ $json.record_id }}', '{{ $json.is_duplicate ? \"duplicate_merged\" : \"master\" }}', '{{ $json.master_record_id }}', 'Duplicate processing completed', NOW());",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -80,
+        416
+      ],
+      "id": "0f3fd05f-8be8-4e6a-88f9-2b414c4fd1ce",
+      "name": "Log Merge Action",
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Pending Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Pending Records": {
+      "main": [
+        [
+          {
+            "node": "Set Run ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Run ID": {
+      "main": [
+        [
+          {
+            "node": "Validate Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Record": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Skipped",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Detect & Merge Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect & Merge Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Update Record Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Record Status": {
+      "main": [
+        [
+          {
+            "node": "Log Merge Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Merge Action": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5888fba2-e81f-4ae2-912d-0b99a9c932b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "0wjUrBNrSlQFAaSi",
+  "tags": []
+}
