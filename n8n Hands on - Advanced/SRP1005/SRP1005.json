@@ -1,0 +1,814 @@
+{
+  "name": "SRP1005",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ba00f865-a913-4d59-b18f-3b2a8ab55129",
+      "name": "Schedule Trigger (9am)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1344,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE",
+          "mode": "list",
+          "cachedResultName": "SRP1005 Competitors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "targets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "6e02c965-5efc-4f72-9029-b67d23583e13",
+      "name": "Read Targets (Sheet1)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1120,
+        416
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "97902556-e541-4c11-92e8-be79ee085d25",
+      "name": "Loop One Competitor",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -896,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = ($json.data) || {};\nconst current = (d.current && d.current.monthlyUsageUsd) ?? 0;\nconst limit = (d.limits && d.limits.maxMonthlyUsageUsd) ?? null;\nconst hasCapacity = limit === null || current < limit;\nreturn [{ json: { has_capacity: hasCapacity, current_usage: current, limit } }];"
+      },
+      "id": "c2c7f52d-a249-482e-b739-d3f79c63bc45",
+      "name": "Has Compute Units?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.has_capacity }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "74f5de7b-d3d6-4480-832a-c3760ff60b44",
+      "name": "Compute Units Available?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const target = $('Loop One Competitor').item.json;\nconst rows = $input.all().map(i => i.json);\nconst profile = rows[0] || {};\n\nreturn [{ json: {\n  timestamp: new Date().toISOString(),\n  competitor_id: target.competitor_id,\n  competitor_name: target.competitor_name,\n  instagram_handle: target.instagram_handle,\n  followers: profile.followersCount ?? null,\n  following: profile.followsCount ?? null,\n  posts_count: profile.postsCount ?? null,\n  bio: profile.biography ?? null,\n  external_url: profile.externalUrl ?? null,\n  email_found: (profile.biography && (profile.biography.match(/[\\w.+-]+@[\\w-]+\\.[\\w.-]+/) || [null])[0]) || null,\n  status: rows.length ? 'ok' : 'no_data'\n} }];"
+      },
+      "id": "9eb1660d-fd13-4240-9a64-be9acf7d962b",
+      "name": "Flatten Instagram Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE",
+          "mode": "list",
+          "cachedResultName": "SRP1005 Competitors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 129759422,
+          "mode": "list",
+          "cachedResultName": "Instagram results",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE/edit#gid=129759422"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "competitor_id": "={{ $json.competitor_id }}",
+            "competitor_name": "={{ $json.competitor_name }}",
+            "instagram_handle": "={{ $json.instagram_handle }}",
+            "followers": "={{ $json.followers }}",
+            "following": "={{ $json.following }}",
+            "posts_count": "={{ $json.posts_count }}",
+            "bio": "={{ $json.bio }}",
+            "external_url": "={{ $json.external_url }}",
+            "status": "={{ $json.status }}",
+            "email_found": "={{ $json.email_found }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "competitor_id",
+              "displayName": "competitor_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "competitor_name",
+              "displayName": "competitor_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "instagram_handle",
+              "displayName": "instagram_handle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "followers",
+              "displayName": "followers",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "following",
+              "displayName": "following",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "posts_count",
+              "displayName": "posts_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "bio",
+              "displayName": "bio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "external_url",
+              "displayName": "external_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email_found",
+              "displayName": "email_found",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b0660b70-5c3a-48f5-8dcd-9a33bac4593c",
+      "name": "Append to Sheet3",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        144
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "HEAD",
+        "url": "={{ $('Loop One Competitor').item.json.website_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "15f3be2c-4ef3-4f74-b2f1-4c0d426ec692",
+      "name": "Check Website Reachable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        432
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 400,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              },
+              "id": "f9eb2e30-4c83-46c0-ad43-ba14fc4de795"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f1fa0e44-f98e-43ac-abf1-bd22e5433d46",
+      "name": "Website Reachable?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const target = $('Loop One Competitor').item.json;\nconst rows = Array.isArray($json) ? $json : ($json.items || []);\nconst text = rows.map(r => r.text || '').join(' ');\n\nconst emails = [...new Set((text.match(/[\\w.+-]+@[\\w-]+\\.[\\w.-]+/g) || []))];\nconst prices = [...new Set((text.match(/[$\\u20b9]\\s?\\d[\\d,]*(\\.\\d+)?/g) || []))];\nconst certKeywords = ['ISO', 'certified', 'certification', 'GMP', 'FDA approved', 'organic certified'];\nconst certs = certKeywords.filter(k => text.toLowerCase().includes(k.toLowerCase()));\n\nreturn [{ json: {\n  timestamp: new Date().toISOString(),\n  competitor_id: target.competitor_id,\n  competitor_name: target.competitor_name,\n  website_url: target.website_url,\n  reachable: true,\n  emails_found: emails.join(', ') || null,\n  prices_found: prices.join(', ') || null,\n  certifications_found: certs.join(', ') || null,\n  raw_snippet: text.slice(0, 300)\n} }];"
+      },
+      "id": "d53c5faf-1234-43e0-a948-ecabb4185949",
+      "name": "Flatten Website Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const target = $('Loop One Competitor').item.json;\nreturn [{ json: {\n  timestamp: new Date().toISOString(),\n  competitor_id: target.competitor_id,\n  competitor_name: target.competitor_name,\n  website_url: target.website_url,\n  reachable: false,\n  emails_found: null,\n  prices_found: null,\n  certifications_found: null,\n  raw_snippet: 'SKIPPED - website unreachable'\n} }];"
+      },
+      "id": "7277f974-1d9f-4a22-bc75-d77ef5d6682d",
+      "name": "Mark Website Unreachable",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE",
+          "mode": "list",
+          "cachedResultName": "SRP1005 Competitors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2008150699,
+          "mode": "list",
+          "cachedResultName": "website intelligence",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-XYk_nB0zV1inB6H2SEmmhUO-sKjlN82JPdUF1SB1uE/edit#gid=2008150699"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "competitor_id": "={{ $json.competitor_id }}",
+            "competitor_name": "={{ $json.competitor_name }}",
+            "website_url": "={{ $json.website_url }}",
+            "reachable": "={{ $json.reachable }}",
+            "emails_found": "={{ $json.emails_found }}",
+            "prices_found": "={{ $json.prices_found }}",
+            "certifications_found": "={{ $json.certifications_found }}",
+            "raw_snippet": "={{ $json.raw_snippet }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "competitor_id",
+              "displayName": "competitor_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "competitor_name",
+              "displayName": "competitor_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "website_url",
+              "displayName": "website_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reachable",
+              "displayName": "reachable",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "emails_found",
+              "displayName": "emails_found",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "prices_found",
+              "displayName": "prices_found",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "certifications_found",
+              "displayName": "certifications_found",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "raw_snippet",
+              "displayName": "raw_snippet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "160d9d27-9c42-48f5-b544-e9edc1d317fe",
+      "name": "Append to Sheet4",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        432
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "2d9142ca-0f75-4bad-9918-c6e2a198cec9",
+      "name": "Merge Branches",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "shu8hvrXbJbY3Eb9W",
+          "mode": "list",
+          "cachedResultName": "Instagram Scraper (apify/instagram-scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/shu8hvrXbJbY3Eb9W/input"
+        },
+        "customBody": "={\n  \"directUrls\": [\"https://www.instagram.com/{{ $('Loop One Competitor').item.json.instagram_handle }}/\"],\n  \"resultsType\": \"details\",\n  \"resultsLimit\": 1,\n  \"proxyConfiguration\": { \"useApifyProxy\": true }\n}"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        448,
+        144
+      ],
+      "id": "a1f542b9-dfd9-4c1f-bfdc-d780f623ae35",
+      "name": "Apify Instagram Scraper",
+      "credentials": {
+        "apifyApi": {
+          "id": "znpDJecMlNiyiPd3",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorSource": "store",
+        "actorId": {
+          "__rl": true,
+          "value": "aYG0l9s7dbB7j3gbS",
+          "mode": "list",
+          "cachedResultName": "Website Content Crawler (apify/website-content-crawler)",
+          "cachedResultUrl": "https://console.apify.com/actors/aYG0l9s7dbB7j3gbS/input"
+        },
+        "customBody": "={\n  \"startUrls\": [{ \"url\": \"{{ $('Loop One Competitor').item.json.website_url }}\" }],\n  \"maxCrawlPages\": 1\n}"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        448,
+        336
+      ],
+      "id": "6b3c9cc8-48f8-43eb-ab99-b11a6f1c6edd",
+      "name": "Apify Website Crawler",
+      "credentials": {
+        "apifyApi": {
+          "id": "znpDJecMlNiyiPd3",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/users/me/limits",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "apifyApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -672,
+        336
+      ],
+      "id": "19fde70b-f246-4812-ab9f-2bf695757bd0",
+      "name": "HTTP Request",
+      "credentials": {
+        "apifyApi": {
+          "id": "znpDJecMlNiyiPd3",
+          "name": "Apify account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger (9am)": {
+      "main": [
+        [
+          {
+            "node": "Read Targets (Sheet1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Targets (Sheet1)": {
+      "main": [
+        [
+          {
+            "node": "Loop One Competitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop One Competitor": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Compute Units?": {
+      "main": [
+        [
+          {
+            "node": "Compute Units Available?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Units Available?": {
+      "main": [
+        [
+          {
+            "node": "Check Website Reachable",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Apify Instagram Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Flatten Instagram Data": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Sheet3": {
+      "main": [
+        [
+          {
+            "node": "Merge Branches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Website Reachable": {
+      "main": [
+        [
+          {
+            "node": "Website Reachable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Website Reachable?": {
+      "main": [
+        [
+          {
+            "node": "Apify Website Crawler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Website Unreachable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten Website Data": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Website Unreachable": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Sheet4": {
+      "main": [
+        [
+          {
+            "node": "Merge Branches",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Branches": {
+      "main": [
+        [
+          {
+            "node": "Loop One Competitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Instagram Scraper": {
+      "main": [
+        [
+          {
+            "node": "Flatten Instagram Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Website Crawler": {
+      "main": [
+        [
+          {
+            "node": "Flatten Website Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Has Compute Units?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dac54d23-5314-4cf4-a37e-3a22808b565f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "K668rYjOUypstI6Z",
+  "tags": []
+}
