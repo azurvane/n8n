@@ -1,0 +1,718 @@
+{
+  "name": "Post Call Analysis and ERP Sync",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "bd0e2476-1fd1-41d6-b5b0-0a82903f15ab",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "call_id",
+              "type": "string",
+              "value": "CALL-1024"
+            },
+            {
+              "name": "customer_id",
+              "type": "string",
+              "value": "CUST-88"
+            },
+            {
+              "name": "outcome",
+              "type": "string",
+              "value": "interested"
+            },
+            {
+              "name": "agent_notes",
+              "type": "string",
+              "value": "Asked for pricing follow-up."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "888407f5-7d51-4e73-9b5e-373b62a38e7f",
+      "name": "Simulated Call Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1584,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const dispositionMap = {\n  'interested': 'DISP_INTERESTED',\n  'not interested': 'DISP_NOT_INTERESTED',\n  'callback requested': 'DISP_CALLBACK',\n  'no answer': 'DISP_NO_ANSWER',\n  'wrong number': 'DISP_WRONG_NUMBER',\n  'converted': 'DISP_CONVERTED'\n};\n\nconst outcome = ($json.outcome || '').toLowerCase().trim();\nconst erp_code = dispositionMap[outcome] || 'DISP_UNKNOWN';\n\nreturn [{\n  json: {\n    ...$json,\n    erp_disposition_code: erp_code,\n    mapped_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "53d67d3a-cc66-44d7-b116-ab85d1f9b4a0",
+      "name": "Map Disposition",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/portal-sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { call_id: $json.call_id, customer_id: $json.customer_id, erp_disposition_code: $json.erp_disposition_code, agent_notes: $json.agent_notes } }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "ddcea066-f1bb-47d3-9975-94255302e587",
+      "name": "Portal Sync Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1136,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "OI8sEW5TJSnlYa2n",
+          "mode": "list",
+          "cachedResultName": "erp_session",
+          "cachedResultUrl": "/projects/x85uj6wGSRvkYvNh/datatables/OI8sEW5TJSnlYa2n"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_key",
+              "keyValue": "global"
+            }
+          ]
+        }
+      },
+      "id": "699d7441-07b0-414d-b506-6f9468a9da0a",
+      "name": "Get Session Cookie",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "4583256d-59fc-43f0-8b17-54b14f4b63ac",
+      "name": "Merge Branches",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -912,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.cookie_value }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "9e64722b-5830-4a83-a1b3-d6a6c679f064",
+      "name": "Has Valid Cookie?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -688,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/erp-update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "=session={{ $json.cookie_value }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { call_id: $json.call_id, customer_id: $json.customer_id, erp_disposition_code: $json.erp_disposition_code } }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "c904e99d-1b2e-4508-813c-df14718e0392",
+      "name": "ERP Update Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "id": "584d89f9-ccc7-411d-bb3d-427431f764b9"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6138a14c-6be8-4ec5-a01e-3bb6e1726e3a",
+      "name": "ERP Update Successful?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "final_status",
+              "type": "string",
+              "value": "SUCCESS"
+            },
+            {
+              "name": "call_id",
+              "type": "string",
+              "value": "={{ $('Map Disposition').item.json.call_id }}"
+            },
+            {
+              "name": "erp_disposition_code",
+              "type": "string",
+              "value": "={{ $('Map Disposition').item.json.erp_disposition_code }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e5da4701-df53-4230-b69c-c21375dd87e7",
+      "name": "Final Status - Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/erp-login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { username: \"demo_user\", password: \"demo_pass\" } }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "2adbc66b-82f1-40f5-a0c4-eea60df03497",
+      "name": "ERP Login (Recovery)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const setCookieHeader = $json.headers['set-cookie'] || $json.headers['Set-Cookie'] || '';\nconst rawCookie = Array.isArray(setCookieHeader) ? setCookieHeader[0] : setCookieHeader;\nconst match = /session=([^;]+)/.exec(rawCookie || '');\nconst newCookie = match ? match[1] : null;\n\nreturn [{\n  json: {\n    session_key: 'global',\n    cookie_value: newCookie,\n    valid: !!newCookie,\n    updated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "e2b028ec-feb2-40e8-97d7-1c4d97e8fb24",
+      "name": "Parse Fresh Cookies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "OI8sEW5TJSnlYa2n",
+          "mode": "list",
+          "cachedResultName": "erp_session",
+          "cachedResultUrl": "/projects/x85uj6wGSRvkYvNh/datatables/OI8sEW5TJSnlYa2n"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_key",
+              "keyValue": "global"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_key": "={{ $json.session_key }}",
+            "cookie_value": "={{ $json.cookie_value }}",
+            "valid": "={{ $json.valid }}",
+            "updated_at": "={{ $json.updated_at }}"
+          },
+          "matchingColumns": [
+            "session_key"
+          ],
+          "schema": [
+            {
+              "id": "session_key",
+              "displayName": "session_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cookie_value",
+              "displayName": "cookie_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "valid",
+              "displayName": "valid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9065facc-e0ab-4c8f-8ff2-7158eb1856bd",
+      "name": "Update Data Table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        432,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/erp-update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "=session={{ $json.cookie_value }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { call_id: $('Map Disposition').item.json.call_id, customer_id: $('Map Disposition').item.json.customer_id, erp_disposition_code: $('Map Disposition').item.json.erp_disposition_code } }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "a6589a85-92a8-4ebf-9297-da30a43bfe8e",
+      "name": "Retry ERP Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        656,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "74c9f347-fc87-4190-b725-06dded6200a0",
+      "name": "Retry Successful?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "final_status",
+              "type": "string",
+              "value": "SUCCESS"
+            },
+            {
+              "name": "call_id",
+              "type": "string",
+              "value": "={{ $('Map Disposition').item.json.call_id }}"
+            },
+            {
+              "name": "erp_disposition_code",
+              "type": "string",
+              "value": "={{ $('Map Disposition').item.json.erp_disposition_code }}"
+            },
+            {
+              "name": "note",
+              "type": "string",
+              "value": "Recovered after cookie refresh and one retry"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "59e9150d-5d8c-4ceb-9596-b9515cfeb558",
+      "name": "Final Status - Success (After Retry)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "final_status",
+              "type": "string",
+              "value": "AUTH_FAILURE"
+            },
+            {
+              "name": "call_id",
+              "type": "string",
+              "value": "={{ $('Map Disposition').item.json.call_id }}"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": "ERP update failed after cookie refresh and one retry"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6c23dd18-0ef3-42ff-86b8-a1b764162f06",
+      "name": "Final Status - Auth Failure",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        416
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Simulated Call Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simulated Call Payload": {
+      "main": [
+        [
+          {
+            "node": "Map Disposition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Disposition": {
+      "main": [
+        [
+          {
+            "node": "Portal Sync Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Session Cookie",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Branches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Session Cookie": {
+      "main": [
+        [
+          {
+            "node": "Merge Branches",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Branches": {
+      "main": [
+        [
+          {
+            "node": "Has Valid Cookie?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Valid Cookie?": {
+      "main": [
+        [
+          {
+            "node": "ERP Update Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ERP Login (Recovery)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ERP Update Request": {
+      "main": [
+        [
+          {
+            "node": "ERP Update Successful?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ERP Update Successful?": {
+      "main": [
+        [
+          {
+            "node": "Final Status - Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ERP Login (Recovery)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ERP Login (Recovery)": {
+      "main": [
+        [
+          {
+            "node": "Parse Fresh Cookies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Fresh Cookies": {
+      "main": [
+        [
+          {
+            "node": "Update Data Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Data Table": {
+      "main": [
+        [
+          {
+            "node": "Retry ERP Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry ERP Update": {
+      "main": [
+        [
+          {
+            "node": "Retry Successful?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Successful?": {
+      "main": [
+        [
+          {
+            "node": "Final Status - Success (After Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Final Status - Auth Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8c1a8ff6-4b1e-4ef9-b890-02b0712bf90f",
+  "meta": {
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "DYDGI61QyKYjeM9d",
+  "tags": []
+}
