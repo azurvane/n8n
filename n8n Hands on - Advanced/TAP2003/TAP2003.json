@@ -1,0 +1,461 @@
+{
+  "name": "TAP2003",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f88f09a1-9f58-42a9-aaf0-e53feba202a9",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorSource": "store",
+        "actorId": {
+          "__rl": true,
+          "value": "WI0tj4Ieb5Kq458gB",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Company Posts Scraper (No Cookies) (harvestapi/linkedin-company-posts)",
+          "cachedResultUrl": "https://console.apify.com/actors/WI0tj4Ieb5Kq458gB/input"
+        },
+        "customBody": "={\n  \"includeQuotePosts\": true,\n  \"includeReposts\": true,\n  \"maxComments\": 0,\n  \"maxPosts\": 5,\n  \"maxReactions\": 0,\n  \"postNestedComments\": false,\n  \"postNestedReactions\": false,\n  \"scrapeComments\": false,\n  \"scrapeReactions\": false,\n  \"targetUrls\": {{ $json.targetUrlsJson }}\n}"
+      },
+      "id": "9365bd91-c3c3-44bf-8f2c-5c04f4179116",
+      "name": "Fetch LinkedIn Posts",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        96
+      ],
+      "credentials": {
+        "apifyApi": {
+          "id": "znpDJecMlNiyiPd3",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const posts = $input.all().map(i => i.json);\nconst lines = posts.map((p, idx) => `Post ${idx + 1}:\\nURL: ${p.linkedinUrl || 'unknown'}\\nAuthor: ${(p.author && p.author.name) || 'unknown'}\\nContent: ${(p.content || '').slice(0, 600)}\\nLikes: ${(p.engagement && p.engagement.likes) ?? 'n/a'} Comments: ${(p.engagement && p.engagement.comments) ?? 'n/a'}`).join('\\n\\n');\n\nconst prompt = `You are analyzing a batch of competitor LinkedIn posts. For each post, extract fixed fields. Respond ONLY in this exact Markdown format, nothing else:\n\n## Executive Summary\n<2-3 sentence summary of overall themes and competitive signals across all posts>\n\n## Posts\n### Post 1\n- URL: <url>\n- Author: <author>\n- Topic: <short topic label>\n- Sentiment: <Positive|Neutral|Negative>\n- Engagement Level: <High|Medium|Low>\n- Key Takeaway: <one sentence>\n\n(repeat ### Post N for every post, in order)\n\nHere are the posts:\\n\\n${lines}`;\n\nreturn [{ json: { prompt, post_count: posts.length } }];"
+      },
+      "id": "9cbb6b96-c088-4eca-b3cd-c9f27364c24b",
+      "name": "Build GPT Batch Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.text || '';\nconst postsSection = raw.split(/##\\s*Posts/i)[1] || '';\nconst blocks = postsSection.split(/###\\s*Post\\s*\\d+/i).slice(1);\n\nconst rows = [];\nfor (const block of blocks) {\n  const get = (label) => {\n    const m = new RegExp(`-\\\\s*${label}\\\\s*:\\\\s*(.+)`, 'i').exec(block);\n    return m ? m[1].trim() : null;\n  };\n  const row = {\n    url: get('URL'),\n    author: get('Author'),\n    topic: get('Topic'),\n    sentiment: get('Sentiment'),\n    engagement_level: get('Engagement Level'),\n    key_takeaway: get('Key Takeaway')\n  };\n  const complete = Object.values(row).every(v => v && v.length > 0);\n  if (complete) {\n    rows.push({ json: { timestamp: new Date().toISOString(), status: 'ok', ...row } });\n  }\n}\n\nreturn rows;"
+      },
+      "id": "cde3f454-53b1-4eff-a531-423e253a1d45",
+      "name": "Parse Valid Post Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1H1OyFOhVu9Qm2IH78t2NL78L8PRBpU2CWqeikIviZWo",
+          "mode": "list",
+          "cachedResultName": "TAP2003 Competition Analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H1OyFOhVu9Qm2IH78t2NL78L8PRBpU2CWqeikIviZWo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H1OyFOhVu9Qm2IH78t2NL78L8PRBpU2CWqeikIviZWo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "author",
+              "displayName": "author",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "engagement_level",
+              "displayName": "engagement_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "key_takeaway",
+              "displayName": "key_takeaway",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c62c6936-7694-4915-b8c7-c4b00ad4923f",
+      "name": "Append Analysis Rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        368,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.text || '';\nconst summaryMatch = /##\\s*Executive Summary\\s*([\\s\\S]*?)##\\s*Posts/i.exec(raw);\nconst summary = summaryMatch ? summaryMatch[1].trim() : 'Summary unavailable.';\n\nconst postsSection = raw.split(/##\\s*Posts/i)[1] || '';\nconst totalBlocks = (postsSection.match(/###\\s*Post\\s*\\d+/gi) || []).length;\nconst blocks = postsSection.split(/###\\s*Post\\s*\\d+/i).slice(1);\nconst requiredLabels = ['URL', 'Author', 'Topic', 'Sentiment', 'Engagement Level', 'Key Takeaway'];\nconst validCount = blocks.filter(b => requiredLabels.every(l => new RegExp(`-\\\\s*${l}\\\\s*:\\\\s*(.+)`, 'i').test(b))).length;\n\nreturn [{ json: {\n  timestamp: new Date().toISOString(),\n  executive_summary: summary,\n  total_posts: totalBlocks,\n  rows_written: validCount,\n  rows_skipped: totalBlocks - validCount\n} }];"
+      },
+      "id": "9784fef9-934e-4b73-8cde-8a0f9f746958",
+      "name": "Build Executive Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1H1OyFOhVu9Qm2IH78t2NL78L8PRBpU2CWqeikIviZWo",
+          "mode": "list",
+          "cachedResultName": "TAP2003 Competition Analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H1OyFOhVu9Qm2IH78t2NL78L8PRBpU2CWqeikIviZWo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1395001598,
+          "mode": "list",
+          "cachedResultName": "Summary",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H1OyFOhVu9Qm2IH78t2NL78L8PRBpU2CWqeikIviZWo/edit#gid=1395001598"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "executive_summary": "={{ $json.executive_summary }}",
+            "total_posts": "={{ $json.total_posts }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "executive_summary",
+              "displayName": "executive_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "total_posts",
+              "displayName": "total_posts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rows_written",
+              "displayName": "rows_written",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rows_skipped",
+              "displayName": "rows_skipped",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ad96b8a3-8cbf-4ac8-b097-dc0ab8043d79",
+      "name": "Append Summary Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        368,
+        192
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "1dce1b18-2281-4ba3-af0b-4ec5ae54f0ee",
+      "name": "Analyze Batch"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        320
+      ],
+      "id": "94cdfaee-f2a6-41d8-808e-8a0e6bedf185",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "RbhvMeRyXdJKTf0F",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const urls = [\n  'https://www.linkedin.com/company/openai/',\n  'https://www.linkedin.com/company/anthropicresearch/',\n  'https://www.linkedin.com/company/microsoft/'\n];\nreturn [{ json: { targetUrls: urls, targetUrlsJson: JSON.stringify(urls) } }];"
+      },
+      "id": "3e039351-5084-4ea3-8ae4-8b1d17b7b776",
+      "name": "Competitor Search Keywords",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        96
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Competitor Search Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch LinkedIn Posts": {
+      "main": [
+        [
+          {
+            "node": "Build GPT Batch Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build GPT Batch Input": {
+      "main": [
+        [
+          {
+            "node": "Analyze Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Valid Post Rows": {
+      "main": [
+        [
+          {
+            "node": "Append Analysis Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Executive Summary": {
+      "main": [
+        [
+          {
+            "node": "Append Summary Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Batch": {
+      "main": [
+        [
+          {
+            "node": "Build Executive Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Parse Valid Post Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Batch",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Competitor Search Keywords": {
+      "main": [
+        [
+          {
+            "node": "Fetch LinkedIn Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "bfea5eba-05ce-4627-bada-0b5dbd08c2eb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "AV7v6zuVgOfq5YpU",
+  "tags": []
+}
