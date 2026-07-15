@@ -1,0 +1,436 @@
+{
+  "name": "SRP1003",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "632ff2fd-8c46-4057-b0a2-e2c767e94cff",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1536,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM srp1003.influencers WHERE status = 'new' ORDER BY record_id;",
+        "options": {}
+      },
+      "id": "c16efd22-120a-4a5b-b06e-d45c9c47decb",
+      "name": "Fetch New Records",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1328,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalize(raw) {\n  if (!raw || typeof raw !== 'string') return null;\n  let url = raw.trim().toLowerCase();\n  url = url.replace(/^https?:\\/\\//, '');\n  url = url.replace(/^(www\\.|m\\.)/, '');\n  if (!url.startsWith('instagram.com/')) return null;\n  let rest = url.slice('instagram.com/'.length).split('?')[0].split('#')[0].replace(/\\/+$/, '');\n  const match = /^([a-z0-9._]+)$/.exec(rest);\n  if (!match) return null;\n  return `instagram.com/${match[1]}`;\n}\n\nreturn $input.all()\n  .map(item => ({ json: { ...item.json, normalized_url: normalize(item.json.profile_url) } }))\n  .filter(item => item.json.normalized_url !== null);"
+      },
+      "id": "a5ea440e-7337-486c-bb5f-dd7a36f3411d",
+      "name": "Normalize URL and Filter Invalid",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE srp1003.influencers SET normalized_url = $1, updated_at = now() WHERE record_id = $2 RETURNING *;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [$json.normalized_url, $json.record_id] }}"
+        }
+      },
+      "id": "9073d66a-e822-4f64-b919-241050ced701",
+      "name": "Update Normalized URL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -880,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM srp1003.influencers WHERE status = 'new' AND normalized_url IS NOT NULL ORDER BY normalized_url, record_id;",
+        "options": {}
+      },
+      "id": "f5fcd4de-8937-4357-a200-37e2659ac9e6",
+      "name": "Fetch Normalized Records",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -656,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst counts = {};\nfor (const i of items) counts[i.json.normalized_url] = (counts[i.json.normalized_url] || 0) + 1;\nreturn items.map(i => ({ json: { ...i.json, is_duplicate: counts[i.json.normalized_url] > 1 } }));"
+      },
+      "id": "723743eb-a39a-4c16-9de8-d02fbabf1175",
+      "name": "Detect Duplicate Groups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.is_duplicate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "04358faf-093f-4393-86de-832aa1176c31",
+      "name": "Is Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const urls = [...new Set($input.all().map(i => i.json.normalized_url))];\nreturn [{ json: { urls } }];"
+      },
+      "id": "d9852d6d-c4b1-4737-9647-c93e5159aca9",
+      "name": "Collect Duplicate Keys",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM srp1003.influencers WHERE normalized_url = ANY($1) ORDER BY normalized_url, record_id;",
+        "options": {
+          "queryReplacement": "={{ [$json.urls] }}"
+        }
+      },
+      "id": "5d9bd96c-6ceb-4642-b1bf-d0dd54ce2b57",
+      "name": "Fetch Full Duplicate Groups",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst groups = {};\nfor (const item of items) {\n  const key = item.json.normalized_url;\n  (groups[key] = groups[key] || []).push(item.json);\n}\n\nconst output = [];\nconst fields = ['username', 'profile_url', 'followers', 'category'];\n\nfor (const key of Object.keys(groups)) {\n  const group = groups[key].sort((a, b) => a.record_id - b.record_id);\n  const primary = group[0];\n  const others = group.slice(1);\n  const merged = { ...primary };\n\n  for (const f of fields) {\n    if (merged[f] === null || merged[f] === undefined || merged[f] === '') {\n      const fallback = others.find(o => o[f] !== null && o[f] !== undefined && o[f] !== '');\n      if (fallback) merged[f] = fallback[f];\n    }\n  }\n\n  output.push({ json: { record_id: primary.record_id, normalized_url: key, status: 'crm_ready', merged_into: null, username: merged.username, profile_url: merged.profile_url, followers: merged.followers, category: merged.category } });\n\n  for (const loser of others) {\n    output.push({ json: { record_id: loser.record_id, normalized_url: key, status: 'merged', merged_into: primary.record_id, username: loser.username, profile_url: loser.profile_url, followers: loser.followers, category: loser.category } });\n  }\n}\n\nreturn output;"
+      },
+      "id": "71d0fbef-c086-46a0-8120-dbb37ba01b94",
+      "name": "Merge Duplicate Groups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "record_id",
+              "type": "number",
+              "value": "={{ $json.record_id }}"
+            },
+            {
+              "name": "normalized_url",
+              "type": "string",
+              "value": "={{ $json.normalized_url }}"
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "value": "crm_ready"
+            },
+            {
+              "name": "merged_into",
+              "type": "string",
+              "value": "={{ null }}"
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "value": "={{ $json.username }}"
+            },
+            {
+              "name": "profile_url",
+              "type": "string",
+              "value": "={{ $json.profile_url }}"
+            },
+            {
+              "name": "followers",
+              "type": "string",
+              "value": "={{ $json.followers }}"
+            },
+            {
+              "name": "category",
+              "type": "string",
+              "value": "={{ $json.category }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8d65b2da-be62-49f6-a346-7473c9795a48",
+      "name": "Prepare Unique Update Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        288
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b66916a3-4550-4a70-9425-4e97400f1c98",
+      "name": "Merge Streams",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE srp1003.influencers SET status = $1, merged_into = $2, normalized_url = $3, username = $4, profile_url = $5, followers = $6, category = $7, updated_at = now() WHERE record_id = $8 RETURNING *;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [$json.status, $json.merged_into, $json.normalized_url, $json.username, $json.profile_url, $json.followers, $json.category, $json.record_id] }}"
+        }
+      },
+      "id": "5960f989-9e6d-4bad-b609-dffd21b6bde1",
+      "name": "Update Merged Records and Statuses",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        880,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch New Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch New Records": {
+      "main": [
+        [
+          {
+            "node": "Normalize URL and Filter Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize URL and Filter Invalid": {
+      "main": [
+        [
+          {
+            "node": "Update Normalized URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Normalized URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Normalized Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Normalized Records": {
+      "main": [
+        [
+          {
+            "node": "Detect Duplicate Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Duplicate Groups": {
+      "main": [
+        [
+          {
+            "node": "Is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Collect Duplicate Keys",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Unique Update Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Duplicate Keys": {
+      "main": [
+        [
+          {
+            "node": "Fetch Full Duplicate Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Full Duplicate Groups": {
+      "main": [
+        [
+          {
+            "node": "Merge Duplicate Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Duplicate Groups": {
+      "main": [
+        [
+          {
+            "node": "Merge Streams",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Unique Update Payload": {
+      "main": [
+        [
+          {
+            "node": "Merge Streams",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Streams": {
+      "main": [
+        [
+          {
+            "node": "Update Merged Records and Statuses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9129eb2f-5dde-46ea-a974-c4dfcba7ba89",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "NXdYaUlks6vvXUwO",
+  "tags": []
+}
