@@ -1,0 +1,350 @@
+{
+  "name": "SRP1004",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "226d39f2-a452-4aa5-b7cd-35e1a87c592e",
+      "name": "Schedule Trigger (9am)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "43dc82fa-1ec4-424d-9999-57ebdeada06b",
+      "name": "Manual Trigger (test)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "16GTcAU1IdwkG5q7WlQQkmmnfF_ioxmY6iCSDoVyP0eY",
+          "mode": "list",
+          "cachedResultName": "SRP1004 Competitors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16GTcAU1IdwkG5q7WlQQkmmnfF_ioxmY6iCSDoVyP0eY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Competitors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16GTcAU1IdwkG5q7WlQQkmmnfF_ioxmY6iCSDoVyP0eY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "511d11b4-0106-4c2d-a3b6-a822ef29fc17",
+      "name": "Read Competitors",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        80
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9sWyMrX7cj9lGZuG",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => String(i.json.active).toUpperCase() === 'TRUE');"
+      },
+      "id": "982a75c9-4e69-450f-8bdf-f29afce897d2",
+      "name": "Filter Active Competitors",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ids = $input.all().map(i => i.json.competitor_id);\nreturn [{ json: { ids } }];"
+      },
+      "id": "98c160d4-e9ba-4a4b-b585-4ae5c353fd6a",
+      "name": "Collect Competitor IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM srp1004.ad_snapshots WHERE competitor_id = ANY($1);",
+        "options": {
+          "queryReplacement": "={{ [$json.ids] }}"
+        }
+      },
+      "id": "81fce8f9-4128-4269-972d-364117b2deca",
+      "name": "Fetch Ad Snapshots",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        912,
+        80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const competitors = $('Filter Active Competitors').all().map(i => i.json);\nconst snapshots = $input.all().map(i => i.json);\n\nconst grouped = {};\nfor (const s of snapshots) (grouped[s.competitor_id] = grouped[s.competitor_id] || []).push(s);\n\nconst results = [];\nfor (const c of competitors) {\n  const rows = grouped[c.competitor_id] || [];\n  if (rows.length === 0) {\n    results.push({ competitor_id: c.competitor_id, competitor_name: c.competitor_name, failed: true, reason: 'no ad snapshots found', ad_count: 0 });\n    continue;\n  }\n  const avgDays = rows.reduce((sum, r) => sum + (r.days_running || 0), 0) / rows.length;\n  const topAd = rows.reduce((a, b) => (b.days_running || 0) > (a.days_running || 0) ? b : a);\n  results.push({\n    competitor_id: c.competitor_id,\n    competitor_name: c.competitor_name,\n    failed: false,\n    ad_count: rows.length,\n    avg_days_running: Math.round(avgDays * 10) / 10,\n    top_ad_headline: topAd.ad_headline,\n    top_ad_days_running: topAd.days_running\n  });\n}\n\nreturn [{ json: { results } }];"
+      },
+      "id": "32a441b6-c52c-46e6-a18c-359a9f15db17",
+      "name": "Compute Metrics Per Competitor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REPLACE_WITH_OPENROUTER_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: \"openai/gpt-4o-mini\", messages: [ { role: \"system\", content: \"You are a marketing analyst. Given competitor Facebook ad metrics as JSON, write a concise 3-4 sentence summary of patterns: which competitors run the most persistent (evergreen) ads, and any notable themes. Be factual, no fluff.\" }, { role: \"user\", content: JSON.stringify($json.results) } ] } }}",
+        "options": {}
+      },
+      "id": "38abe181-e1ff-4090-bc4d-914a80cc75d3",
+      "name": "Generate Pattern Summary (OpenRouter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1344,
+        80
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "1NsBGROuTKjfk6jZ",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const summary = ($json.choices && $json.choices[0] && $json.choices[0].message.content || 'Summary unavailable.').trim();\nconst results = $('Compute Metrics Per Competitor').item.json.results;\nconst ok = results.filter(r => !r.failed);\nconst failed = results.filter(r => r.failed);\n\nconst lines = ok.map(r => `\\u2022 *${r.competitor_name}* \\u2014 ${r.ad_count} ads, avg ${r.avg_days_running}d running, top: \"${r.top_ad_headline}\" (${r.top_ad_days_running}d)`);\nconst failedLines = failed.map(r => `\\u2022 *${r.competitor_name}* \\u2014 FAILED: ${r.reason}`);\n\nconst date = new Date().toISOString().slice(0, 10);\nlet digest = `*Facebook Ads Spy Daily Digest \\u2014 ${date}*\\n\\n${summary}\\n\\n*Competitor Breakdown:*\\n${lines.join('\\n')}`;\nif (failed.length) digest += `\\n\\n*Failed / No Data:*\\n${failedLines.join('\\n')}`;\n\nreturn [{ json: { digest_text: digest, ok_count: ok.length, failed_count: failed.length, run_date: date } }];"
+      },
+      "id": "9ce699bd-dbbc-4ce4-b596-e36c3630d9a1",
+      "name": "Build Final Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { text: $json.digest_text } }}",
+        "options": {}
+      },
+      "id": "6897cc2f-d815-4d2a-9d06-8c02ea5b3557",
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO srp1004.digest_runs (run_date, competitors_processed, competitors_failed, digest_sent) VALUES ($1, $2, $3, true) RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$('Build Final Digest').item.json.run_date, $('Build Final Digest').item.json.ok_count, $('Build Final Digest').item.json.failed_count] }}"
+        }
+      },
+      "id": "118d08c9-31c1-4c50-9519-50005caf6e83",
+      "name": "Store Digest Run Metadata",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2000,
+        80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger (9am)": {
+      "main": [
+        [
+          {
+            "node": "Read Competitors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger (test)": {
+      "main": [
+        [
+          {
+            "node": "Read Competitors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Competitors": {
+      "main": [
+        [
+          {
+            "node": "Filter Active Competitors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Active Competitors": {
+      "main": [
+        [
+          {
+            "node": "Collect Competitor IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Competitor IDs": {
+      "main": [
+        [
+          {
+            "node": "Fetch Ad Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Ad Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Compute Metrics Per Competitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Metrics Per Competitor": {
+      "main": [
+        [
+          {
+            "node": "Generate Pattern Summary (OpenRouter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Pattern Summary (OpenRouter)": {
+      "main": [
+        [
+          {
+            "node": "Build Final Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Final Digest": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Slack": {
+      "main": [
+        [
+          {
+            "node": "Store Digest Run Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "70649e79-6305-4ff4-a1de-5552c8a57844",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "IxzpHYiorHqBQEcV",
+  "tags": []
+}
