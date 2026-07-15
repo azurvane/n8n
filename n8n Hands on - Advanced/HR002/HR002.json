@@ -1,0 +1,436 @@
+{
+  "name": "HR002",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0f6a4e1f-cf04-4e65-96c3-41ed4eeba763",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1536,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM HR002.candidates WHERE status = 'new' ORDER BY record_id;",
+        "options": {}
+      },
+      "id": "f673fab7-fc4d-44f1-a131-e678d3f6acba",
+      "name": "Fetch New Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1328,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalizeLinkedInUrl(raw) {\n  if (!raw || typeof raw !== 'string') return null;\n  let url = raw.trim().toLowerCase();\n  url = url.replace(/^https?:\\/\\//, '');\n  url = url.replace(/^www\\./, '');\n  if (!url.startsWith('linkedin.com/')) return null;\n  url = url.split('?')[0].split('#')[0];\n  url = url.replace(/\\/+$/, '');\n  const match = /^linkedin\\.com\\/in\\/([a-z0-9\\-_%]+)$/.exec(url);\n  if (!match) return null;\n  return `linkedin.com/in/${match[1]}`;\n}\n\nconst items = $input.all();\n\nreturn items\n  .map(item => {\n    const normalized = normalizeLinkedInUrl(item.json.linkedin_url);\n    return { json: { ...item.json, normalized_url: normalized } };\n  })\n  .filter(item => item.json.normalized_url !== null);"
+      },
+      "id": "aba41f97-01e2-44d7-ac39-e5ba3b3acb2f",
+      "name": "Normalize URL and Filter Invalid",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE HR002.candidates SET normalized_url = $1, updated_at = now() WHERE record_id = $2 RETURNING *;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [$json.normalized_url, $json.record_id] }}"
+        }
+      },
+      "id": "1e50193b-8e10-4244-af96-e508007a5edd",
+      "name": "Update Normalized URL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -880,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM HR002.candidates WHERE status = 'new' AND normalized_url IS NOT NULL ORDER BY normalized_url, record_id;",
+        "options": {}
+      },
+      "id": "a3b0cb5f-aa88-4bd8-b62a-5a4c03be49cd",
+      "name": "Fetch Normalized Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -656,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst counts = {};\n\nfor (const item of items) {\n  const key = item.json.normalized_url;\n  counts[key] = (counts[key] || 0) + 1;\n}\n\nreturn items.map(item => ({\n  json: {\n    ...item.json,\n    is_duplicate: counts[item.json.normalized_url] > 1\n  }\n}));"
+      },
+      "id": "5ae2a624-73bc-444a-8d35-a1ce566e55fa",
+      "name": "Detect Duplicate Groups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.is_duplicate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "9ef4dea4-8a53-4a67-95d4-e3153cdf0942",
+      "name": "Is Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst urls = [...new Set(items.map(i => i.json.normalized_url))];\nreturn [{ json: { urls } }];"
+      },
+      "id": "e08d6694-355b-421b-9bcc-2a57ee7ae908",
+      "name": "Collect Duplicate Keys",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM HR002.candidates WHERE normalized_url = ANY($1) ORDER BY normalized_url, record_id;",
+        "options": {
+          "queryReplacement": "={{ [$json.urls] }}"
+        }
+      },
+      "id": "d9afd09a-b7e6-4bf6-be1e-b6207170d0aa",
+      "name": "Fetch Full Duplicate Groups",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst groups = {};\n\nfor (const item of items) {\n  const key = item.json.normalized_url;\n  if (!groups[key]) groups[key] = [];\n  groups[key].push(item.json);\n}\n\nconst output = [];\n\nfor (const key of Object.keys(groups)) {\n  const group = groups[key].sort((a, b) => a.record_id - b.record_id);\n  const primary = group[0];\n  const others = group.slice(1);\n\n  const mergedFields = ['full_name', 'email', 'phone', 'source'];\n  const merged = { ...primary };\n  for (const field of mergedFields) {\n    if (merged[field] === null || merged[field] === undefined || merged[field] === '') {\n      const fallback = others.find(o => o[field] !== null && o[field] !== undefined && o[field] !== '');\n      if (fallback) merged[field] = fallback[field];\n    }\n  }\n\n  output.push({\n    json: {\n      record_id: primary.record_id,\n      normalized_url: key,\n      status: 'crm_ready',\n      merged_into: null,\n      full_name: merged.full_name,\n      email: merged.email,\n      phone: merged.phone,\n      source: merged.source\n    }\n  });\n\n  for (const loser of others) {\n    output.push({\n      json: {\n        record_id: loser.record_id,\n        normalized_url: key,\n        status: 'merged',\n        merged_into: primary.record_id,\n        full_name: loser.full_name,\n        email: loser.email,\n        phone: loser.phone,\n        source: loser.source\n      }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "id": "94b75045-005e-43e2-ae0c-d6c5da5fa0cd",
+      "name": "Merge Duplicate Groups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "record_id",
+              "type": "number",
+              "value": "={{ $json.record_id }}"
+            },
+            {
+              "name": "normalized_url",
+              "type": "string",
+              "value": "={{ $json.normalized_url }}"
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "value": "crm_ready"
+            },
+            {
+              "name": "merged_into",
+              "type": "string",
+              "value": "={{ null }}"
+            },
+            {
+              "name": "full_name",
+              "type": "string",
+              "value": "={{ $json.full_name }}"
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "phone",
+              "type": "string",
+              "value": "={{ $json.phone }}"
+            },
+            {
+              "name": "source",
+              "type": "string",
+              "value": "={{ $json.source }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6372b01a-96a7-4ec3-b0f4-89fc25d7c38e",
+      "name": "Prepare Unique Update Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        288
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "1ca6a563-de89-4d8a-8d4b-1f71be166537",
+      "name": "Merge Streams",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE HR002.candidates SET status = $1, merged_into = $2, normalized_url = $3, full_name = $4, email = $5, phone = $6, source = $7, updated_at = now() WHERE record_id = $8 RETURNING *;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [$json.status, $json.merged_into, $json.normalized_url, $json.full_name, $json.email, $json.phone, $json.source, $json.record_id] }}"
+        }
+      },
+      "id": "9becb16d-2497-4822-8995-21c855193386",
+      "name": "Update Merged Records and Statuses",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        880,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NZhIIAZ94aposWs7",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch New Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch New Candidates": {
+      "main": [
+        [
+          {
+            "node": "Normalize URL and Filter Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize URL and Filter Invalid": {
+      "main": [
+        [
+          {
+            "node": "Update Normalized URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Normalized URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Normalized Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Normalized Candidates": {
+      "main": [
+        [
+          {
+            "node": "Detect Duplicate Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Duplicate Groups": {
+      "main": [
+        [
+          {
+            "node": "Is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Collect Duplicate Keys",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Unique Update Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Duplicate Keys": {
+      "main": [
+        [
+          {
+            "node": "Fetch Full Duplicate Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Full Duplicate Groups": {
+      "main": [
+        [
+          {
+            "node": "Merge Duplicate Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Duplicate Groups": {
+      "main": [
+        [
+          {
+            "node": "Merge Streams",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Unique Update Payload": {
+      "main": [
+        [
+          {
+            "node": "Merge Streams",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Streams": {
+      "main": [
+        [
+          {
+            "node": "Update Merged Records and Statuses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "cb5409ca-2f3e-4dff-a12e-d8ee4191ab1e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbcd861b5eddffeb4c55addc33b4f0e78a9a860e3333754f5534ee16b2a29630"
+  },
+  "nodeGroups": [],
+  "id": "wVP2CY0yg0reIHfl",
+  "tags": []
+}
